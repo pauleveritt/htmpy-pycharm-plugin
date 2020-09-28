@@ -30,6 +30,8 @@ public class _HtmpyLexer implements FlexLexer {
   public static final int comment = 8;
   public static final int comment_end = 10;
   public static final int comment_block = 12;
+  public static final int python_code = 14;
+  public static final int python_code_end = 16;
 
   /**
    * ZZ_LEXSTATE[l] is the state in the DFA for the lexical state l
@@ -38,7 +40,8 @@ public class _HtmpyLexer implements FlexLexer {
    * l is of the form l = 2*k, k a non negative integer
    */
   private static final int ZZ_LEXSTATE[] = { 
-     0,  0,  1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6, 6
+     0,  0,  1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,  7,  7, 
+     8, 8
   };
 
   /** 
@@ -60,9 +63,8 @@ public class _HtmpyLexer implements FlexLexer {
 
   /* The ZZ_CMAP_A table has 320 entries */
   static final char ZZ_CMAP_A[] = zzUnpackCMap(
-    "\11\0\2\1\1\14\2\1\22\0\1\1\1\10\2\16\1\0\1\16\1\7\2\16\1\17\3\16\1\11\1\12"+
-    "\1\4\13\0\2\16\1\17\1\16\1\0\1\16\32\0\1\20\1\3\1\21\1\6\1\0\1\16\32\0\1\2"+
-    "\1\13\1\15\1\5\6\0\1\22\242\0\2\22\26\0");
+    "\11\0\2\1\1\10\2\1\22\0\1\1\14\0\1\7\1\0\1\4\54\0\1\3\36\0\1\2\1\0\1\6\1\5"+
+    "\6\0\1\10\242\0\2\10\26\0");
 
   /** 
    * Translates DFA states to action switch labels.
@@ -70,15 +72,14 @@ public class _HtmpyLexer implements FlexLexer {
   private static final int [] ZZ_ACTION = zzUnpackAction();
 
   private static final String ZZ_ACTION_PACKED_0 =
-    "\1\1\1\2\1\0\1\1\1\3\1\0\1\4\1\5"+
-    "\1\6\1\2\1\7\1\6\1\10\1\6\1\10\1\11"+
-    "\1\6\1\0\1\2\1\12\1\13\1\1\1\3\1\14"+
-    "\1\6\1\4\1\15\1\16\1\7\1\17\1\7\1\20"+
-    "\1\11\1\21\1\22\1\0\1\23\1\0\1\24\1\25"+
-    "\1\26\1\0\1\4\1\0\1\27\1\30";
+    "\1\1\2\0\1\1\1\2\1\0\1\3\1\2\1\0"+
+    "\1\4\1\5\1\6\1\7\1\5\1\10\1\11\1\12"+
+    "\1\1\1\2\1\13\1\5\1\3\1\2\1\10\1\7"+
+    "\1\0\1\14\1\15\1\16\1\17\1\0\1\3\1\20"+
+    "\1\21";
 
   private static int [] zzUnpackAction() {
-    int [] result = new int[46];
+    int [] result = new int[34];
     int offset = 0;
     offset = zzUnpackAction(ZZ_ACTION_PACKED_0, offset, result);
     return result;
@@ -103,15 +104,14 @@ public class _HtmpyLexer implements FlexLexer {
   private static final int [] ZZ_ROWMAP = zzUnpackRowMap();
 
   private static final String ZZ_ROWMAP_PACKED_0 =
-    "\0\0\0\23\0\46\0\71\0\114\0\137\0\162\0\205"+
-    "\0\230\0\253\0\276\0\205\0\205\0\321\0\344\0\367"+
-    "\0\u010a\0\230\0\u011d\0\u0130\0\205\0\u0143\0\u0156\0\205"+
-    "\0\u0169\0\u017c\0\205\0\205\0\u018f\0\205\0\205\0\u01a2"+
-    "\0\205\0\205\0\205\0\u01b5\0\205\0\u010a\0\205\0\205"+
-    "\0\205\0\u01c8\0\u01db\0\u01ee\0\205\0\205";
+    "\0\0\0\11\0\22\0\33\0\44\0\55\0\66\0\77"+
+    "\0\110\0\121\0\121\0\132\0\143\0\154\0\165\0\176"+
+    "\0\121\0\207\0\220\0\121\0\231\0\242\0\253\0\121"+
+    "\0\121\0\264\0\121\0\121\0\121\0\121\0\275\0\306"+
+    "\0\121\0\121";
 
   private static int [] zzUnpackRowMap() {
-    int [] result = new int[46];
+    int [] result = new int[34];
     int offset = 0;
     offset = zzUnpackRowMap(ZZ_ROWMAP_PACKED_0, offset, result);
     return result;
@@ -134,25 +134,19 @@ public class _HtmpyLexer implements FlexLexer {
   private static final int [] ZZ_TRANS = zzUnpackTrans();
 
   private static final String ZZ_TRANS_PACKED_0 =
-    "\2\1\1\10\20\1\1\11\1\12\1\13\1\14\1\15"+
-    "\1\16\3\14\1\11\1\17\1\14\1\12\1\20\2\14"+
-    "\1\21\1\14\1\22\1\14\1\23\1\24\1\25\10\14"+
-    "\1\0\5\14\1\0\2\4\1\26\20\4\15\27\1\30"+
-    "\5\27\1\14\1\23\7\14\1\31\2\14\1\0\1\30"+
-    "\4\14\1\0\11\7\1\32\11\7\23\0\1\22\1\33"+
-    "\2\0\2\33\3\0\1\22\4\33\1\0\1\33\2\0"+
-    "\1\22\1\0\1\12\12\0\1\12\10\0\1\34\2\0"+
-    "\1\35\1\36\1\37\1\40\27\0\1\41\6\0\1\42"+
-    "\3\0\1\42\4\0\1\43\3\42\12\0\1\44\7\0"+
-    "\1\45\5\0\21\46\1\43\1\46\1\0\1\23\21\0"+
-    "\2\24\1\47\20\24\2\4\1\26\1\4\1\50\16\4"+
-    "\15\27\1\51\5\27\11\0\1\52\11\0\11\7\1\53"+
-    "\11\7\2\0\1\34\3\0\1\36\1\37\24\0\1\54"+
-    "\26\0\1\45\22\0\1\30\5\0\11\7\1\53\3\7"+
-    "\1\55\5\7\11\0\1\56\11\0";
+    "\2\1\1\12\6\1\1\13\1\14\1\15\2\13\1\16"+
+    "\1\17\1\13\1\0\1\13\1\14\1\20\1\21\4\13"+
+    "\1\0\2\4\1\22\6\4\6\23\1\24\2\23\1\13"+
+    "\1\14\4\13\1\24\1\25\1\0\7\7\1\26\1\7"+
+    "\6\27\1\30\2\27\1\13\1\14\4\13\1\30\1\13"+
+    "\13\0\1\14\14\0\1\31\11\0\1\30\7\0\1\32"+
+    "\1\33\2\0\2\20\1\34\6\20\2\4\1\22\1\4"+
+    "\1\35\4\4\6\23\1\36\2\23\7\0\1\37\1\0"+
+    "\7\7\1\40\1\7\6\27\1\41\2\27\6\0\1\33"+
+    "\10\0\1\24\2\0\6\7\1\42\1\40\1\7";
 
   private static int [] zzUnpackTrans() {
-    int [] result = new int[513];
+    int [] result = new int[207];
     int offset = 0;
     offset = zzUnpackTrans(ZZ_TRANS_PACKED_0, offset, result);
     return result;
@@ -190,13 +184,12 @@ public class _HtmpyLexer implements FlexLexer {
   private static final int [] ZZ_ATTRIBUTE = zzUnpackAttribute();
 
   private static final String ZZ_ATTRIBUTE_PACKED_0 =
-    "\2\1\1\0\2\1\1\0\1\1\1\11\3\1\2\11"+
-    "\4\1\1\0\2\1\1\11\2\1\1\11\2\1\2\11"+
-    "\1\1\2\11\1\1\3\11\1\0\1\11\1\0\3\11"+
-    "\1\0\1\1\1\0\2\11";
+    "\1\1\2\0\2\1\1\0\2\1\1\0\2\11\5\1"+
+    "\1\11\2\1\1\11\3\1\2\11\1\0\4\11\1\0"+
+    "\1\1\2\11";
 
   private static int [] zzUnpackAttribute() {
-    int [] result = new int[46];
+    int [] result = new int[34];
     int offset = 0;
     offset = zzUnpackAttribute(ZZ_ATTRIBUTE_PACKED_0, offset, result);
     return result;
@@ -516,23 +509,18 @@ public class _HtmpyLexer implements FlexLexer {
             { return CONTENT;
             } 
             // fall through
-          case 25: break;
+          case 18: break;
           case 2: 
-            { return WHITE_SPACE;
-            } 
-            // fall through
-          case 26: break;
-          case 3: 
             { return UNCLOSED_COMMENT;
             } 
             // fall through
-          case 27: break;
-          case 4: 
+          case 19: break;
+          case 3: 
             { yypopState(); return UNCLOSED_COMMENT;
             } 
             // fall through
-          case 28: break;
-          case 5: 
+          case 20: break;
+          case 4: 
             { // backtrack over any stache characters at the end of this string
           while (yylength() > 0 && yytext().subSequence(yylength() - 1, yylength()).toString().equals("{")) {
             yypushback(1);
@@ -559,85 +547,49 @@ public class _HtmpyLexer implements FlexLexer {
           }
             } 
             // fall through
-          case 29: break;
-          case 6: 
+          case 21: break;
+          case 5: 
             { return INVALID;
             } 
             // fall through
-          case 30: break;
+          case 22: break;
+          case 6: 
+            { return WHITE_SPACE;
+            } 
+            // fall through
+          case 23: break;
           case 7: 
-            { return OPEN;
+            { yypopState(); yypushState(python_code); return OPEN;
             } 
             // fall through
-          case 31: break;
+          case 24: break;
           case 8: 
-            { return SEP;
-            } 
-            // fall through
-          case 32: break;
-          case 9: 
             { yypopState(); return CLOSE;
             } 
             // fall through
-          case 33: break;
-          case 10: 
+          case 25: break;
+          case 9: 
             { // otherwise, if the remaining text just contains the one escaped mustache, then it's all CONTENT
         return CONTENT;
             } 
             // fall through
-          case 34: break;
-          case 11: 
+          case 26: break;
+          case 10: 
             { return ESCAPE_CHAR;
             } 
             // fall through
-          case 35: break;
-          case 12: 
+          case 27: break;
+          case 11: 
             { yypopState(); return COMMENT_CLOSE;
             } 
             // fall through
-          case 36: break;
-          case 13: 
-            // lookahead expression with fixed lookahead length
-            zzMarkedPos = Character.offsetByCodePoints
-                (zzBufferL/*, zzStartRead, zzEndRead - zzStartRead*/, zzMarkedPos, -1);
-            { return OUTER_ELEMENT_TYPE;
-            } 
-            // fall through
-          case 37: break;
-          case 14: 
-            { return OPEN_UNESCAPED;
-            } 
-            // fall through
-          case 38: break;
-          case 15: 
-            { return OPEN_INVERSE;
-            } 
-            // fall through
-          case 39: break;
-          case 16: 
-            { yypopState(); yypushState(comment); return COMMENT_OPEN;
-            } 
-            // fall through
-          case 40: break;
-          case 17: 
-            // lookahead expression with fixed base length
-            zzMarkedPos = Character.offsetByCodePoints
-                (zzBufferL/*, zzStartRead, zzEndRead - zzStartRead*/, zzStartRead, 1);
-            { return OUTER_ELEMENT_TYPE;
-            } 
-            // fall through
-          case 41: break;
-          case 18: 
-            { return OUTER_ELEMENT_TYPE;
-            } 
-            // fall through
-          case 42: break;
-          case 19: 
+          case 28: break;
+          case 12: 
             { yypopState(); return CLOSE_UNESCAPED;
             } 
             // fall through
-          case 43: break;
-          case 20: 
+          case 29: break;
+          case 13: 
             { // grab everything up to the next open stache
           // backtrack over any stache characters or escape characters at the end of this string
           while (yylength() > 0
@@ -650,8 +602,8 @@ public class _HtmpyLexer implements FlexLexer {
           return CONTENT;
             } 
             // fall through
-          case 44: break;
-          case 21: 
+          case 30: break;
+          case 14: 
             { // backtrack over the END_RAW_BLOCK we picked up at the end of this string
              yypushback(5);
 
@@ -668,8 +620,8 @@ public class _HtmpyLexer implements FlexLexer {
              }
             } 
             // fall through
-          case 45: break;
-          case 22: 
+          case 31: break;
+          case 15: 
             { // backtrack over any extra stache characters at the end of this string
       while (yylength() > 2 && yytext().subSequence(yylength() - 3, yylength()).toString().equals("}}}")) {
         yypushback(1);
@@ -680,17 +632,24 @@ public class _HtmpyLexer implements FlexLexer {
       return COMMENT_CONTENT;
             } 
             // fall through
-          case 46: break;
-          case 23: 
+          case 32: break;
+          case 16: 
+            { // backtrack over any extra stache characters at the end of this string
+      while (yylength() > 2 && yytext().subSequence(yylength() - 3, yylength()).toString().equals("}}}")) {
+        yypushback(1);
+      }
+
+      yypushback(1);
+      yybegin(python_code_end);
+      return PYTHON_CODE;
+            } 
+            // fall through
+          case 33: break;
+          case 17: 
             { yypushback(4); yybegin(comment_end); return COMMENT_CONTENT;
             } 
             // fall through
-          case 47: break;
-          case 24: 
-            { yypopState(); yypushState(comment_block); return COMMENT_OPEN;
-            } 
-            // fall through
-          case 48: break;
+          case 34: break;
           default:
             zzScanError(ZZ_NO_MATCH);
           }

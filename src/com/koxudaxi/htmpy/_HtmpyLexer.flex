@@ -26,7 +26,8 @@ import com.intellij.util.containers.Stack;
 %state comment
 %state comment_end
 %state comment_block
-
+%state python_code
+%state python_code_end
 %{
 // This parser was copied from https://github.com/dmarcotte/idea-handlebars
     private Stack<Integer> stack = new Stack<>();
@@ -122,17 +123,17 @@ WhiteSpace = {LineTerminator} | [ \t\f]
   // NOTE: the standard Handlebars lexer would checks for "{{^}}" and "{{else}}" here and lexes the simple inverse directly.
   // We lex it in pieces and identify simple inverses in the parser
   // (this also allows us to  highlight "{{" and the "else" independently.  See where we make an HbTokens.ELSE below)
-  "{"\~?"^" { return OPEN_INVERSE; }
-  "{"\~?"{" { return OPEN_UNESCAPED; }
-  "{"\~?"&" { return OPEN; }
-  "{!" { yypopState(); yypushState(comment); return COMMENT_OPEN; }
-  "{!--" { yypopState(); yypushState(comment_block); return COMMENT_OPEN; }
+//  "{"\~?"^" { return OPEN_INVERSE; }
+//  "{"\~?"{" { return OPEN_UNESCAPED; }
+//  "{"\~?"&" { return OPEN; }
+//  "{!" { yypopState(); yypushState(comment); return COMMENT_OPEN; }
+//  "{!--" { yypopState(); yypushState(comment_block); return COMMENT_OPEN; }
 
-  "{"\~? { return OPEN; }
-  "."/[\~\}\t| \n\x0B\f\r] { return PYTHON_CODE; }
-  ".." { return PYTHON_CODE; }
-  [\/.] { return SEP; }
-  [\t \n\x0B\f\r]* { return WHITE_SPACE; }
+  "{"\~? {  yypopState(); yypushState(python_code); return OPEN; }
+//  "."/[\~\}\t| \n\x0B\f\r] { return PYTHON_CODE; }
+//  ".." { return PYTHON_CODE; }
+//  [\/.] { return SEP; }
+//  [\t \n\x0B\f\r]* { return WHITE_SPACE; }
   "}"\~?"}" { yypopState(); return CLOSE_UNESCAPED; }
   \~?"}" { yypopState(); return CLOSE; }
   /*
@@ -144,9 +145,30 @@ WhiteSpace = {LineTerminator} | [ \t\f]
       [\[-\^`]      [, \, ], ^, `,                          Exceptions in range: _
       [\{-~]        {, |, }, ~
     */
-  [^\t \n\x0B\f\r!\"#%-,\.\/;->@\[-\^`\{-~]+/[\~=}\)|\t \n\x0B\f\r\/.]   { return PYTHON_CODE; }
+//  [^\t \n\x0B\f\r!\"#%-,\.\/;->@\[-\^`\{-~]+/[\~=}\)|\t \n\x0B\f\r\/.]   { return PYTHON_CODE; }
   // TODO handlesbars.l extracts the id from within the square brackets.  Fix it to match handlebars.l?
-  "["[^\]]*"]" { return PYTHON_CODE; }
+//  "["[^\]]*"]" { return PYTHON_CODE; }
+}
+
+<python_code> {
+  "}" { yypopState(); return CLOSE; }
+  ~"}" {
+      // backtrack over any extra stache characters at the end of this string
+      while (yylength() > 2 && yytext().subSequence(yylength() - 3, yylength()).toString().equals("}}}")) {
+        yypushback(1);
+      }
+
+      yypushback(1);
+      yybegin(python_code_end);
+      return PYTHON_CODE;
+  }
+  // lex unclosed comments so that we can give better errors
+  !([^]*"}"[^]*) {  return UNCLOSED_COMMENT; }
+}
+
+
+<python_code_end> {
+  "}" { yypopState(); return CLOSE; }
 }
 
 <comment> {
