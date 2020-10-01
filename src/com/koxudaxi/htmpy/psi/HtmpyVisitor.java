@@ -7,6 +7,10 @@ import com.intellij.psi.PsiElement;
 
 public class HtmpyVisitor extends PsiElementVisitor {
 
+  public void visitPythonElement(@NotNull HtmpyPythonElement o) {
+    visitPsiElement(o);
+  }
+
   public void visitPsiElement(@NotNull PsiElement o) {
     visitElement(o);
   }

@@ -4,9 +4,12 @@ package com.koxudaxi.htmpy.psi;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.PsiElement;
 import com.intellij.lang.ASTNode;
+import com.koxudaxi.htmpy.parsing.HtmpyElementType;
+import com.koxudaxi.htmpy.psi.impl.*;
 
 public interface HtmpyTypes {
 
+  IElementType PYTHON_ELEMENT = new HtmpyElementType("PYTHON_ELEMENT");
 
   IElementType BLOCK_WRAPPER = new HtmpyTokenType("BLOCK_WRAPPER");
   IElementType CLOSE = new HtmpyTokenType("CLOSE");
@@ -41,5 +44,12 @@ public interface HtmpyTypes {
   IElementType UNCLOSED_COMMENT = new HtmpyTokenType("UNCLOSED_COMMENT");
 
   class Factory {
+    public static PsiElement createElement(ASTNode node) {
+      IElementType type = node.getElementType();
+      if (type == PYTHON_ELEMENT) {
+        return new HtmpyPythonElementImpl(node);
+      }
+      throw new AssertionError("Unknown element type: " + type);
+    }
   }
 }

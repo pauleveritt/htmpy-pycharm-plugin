@@ -48,11 +48,12 @@ public class HtmpyParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // OPEN|CLOSE|INVALID|COMMENT|COMMENT_CONTENT|CONTENT|OUTER_ELEMENT_TYPE|ESCAPE_CHAR|CLOSE_UNESCAPED|COMMENT_OPEN|OPEN_INVERSE|ID|SEP|OPEN_UNESCAPED|UNCLOSED_COMMENT|COMMENT_CLOSE|OPEN_BLOCK|OPEN_ENDBLOCK|OPEN_PARTIAL|ELSE|BLOCK_WRAPPER|OPEN_RAW_BLOCK|CLOSE_RAW_BLOCK|OPEN_BLOCK_STACHE|OPEN_INVERSE_CHAIN|OPEN_INVERSE_BLOCK_STACHE|MUSTACHE|CLOSE_BLOCK_STACHE|SIMPLE_INVERSE|PARAM|PYTHON_CODE
+  // python_element|OPEN|CLOSE|INVALID|COMMENT|COMMENT_CONTENT|CONTENT|OUTER_ELEMENT_TYPE|ESCAPE_CHAR|CLOSE_UNESCAPED|COMMENT_OPEN|OPEN_INVERSE|ID|SEP|OPEN_UNESCAPED|UNCLOSED_COMMENT|COMMENT_CLOSE|OPEN_BLOCK|OPEN_ENDBLOCK|OPEN_PARTIAL|ELSE|BLOCK_WRAPPER|OPEN_RAW_BLOCK|CLOSE_RAW_BLOCK|OPEN_BLOCK_STACHE|OPEN_INVERSE_CHAIN|OPEN_INVERSE_BLOCK_STACHE|MUSTACHE|CLOSE_BLOCK_STACHE|SIMPLE_INVERSE|PARAM
   static boolean item_(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "item_")) return false;
     boolean r;
-    r = consumeToken(b, OPEN);
+    r = python_element(b, l + 1);
+    if (!r) r = consumeToken(b, OPEN);
     if (!r) r = consumeToken(b, CLOSE);
     if (!r) r = consumeToken(b, INVALID);
     if (!r) r = consumeToken(b, COMMENT);
@@ -82,7 +83,18 @@ public class HtmpyParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeToken(b, CLOSE_BLOCK_STACHE);
     if (!r) r = consumeToken(b, SIMPLE_INVERSE);
     if (!r) r = consumeToken(b, PARAM);
-    if (!r) r = consumeToken(b, PYTHON_CODE);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // PYTHON_CODE
+  public static boolean python_element(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "python_element")) return false;
+    if (!nextTokenIs(b, PYTHON_CODE)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, PYTHON_CODE);
+    exit_section_(b, m, PYTHON_ELEMENT, r);
     return r;
   }
 

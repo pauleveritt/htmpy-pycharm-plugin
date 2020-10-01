@@ -8,7 +8,8 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.templateLanguages.TemplateDataLanguageMappings
-import com.koxudaxi.htmpy.psi.HtmpyTypes.CONTENT
+import com.jetbrains.python.PythonFileType
+import com.koxudaxi.htmpy.psi.HtmpyTypes.*
 
 
 class HtmpyTemplateHighlighter(project: Project?, virtualFile: VirtualFile?, colors: EditorColorsScheme) : LayeredLexerEditorHighlighter(HtmpyHighlighter(), colors) {
@@ -20,6 +21,10 @@ class HtmpyTemplateHighlighter(project: Project?, virtualFile: VirtualFile?, col
         }
         SyntaxHighlighterFactory.getSyntaxHighlighter(languageFileType, project, virtualFile)?.let {
             registerLayer(CONTENT, LayerDescriptor(it, ""))
+        }
+
+        SyntaxHighlighterFactory.getSyntaxHighlighter(PythonFileType.INSTANCE, project, virtualFile)?.let {
+            registerLayer(PYTHON_CODE, LayerDescriptor(it, ""))
         }
     }
 }
