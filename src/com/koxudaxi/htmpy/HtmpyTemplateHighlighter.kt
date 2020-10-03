@@ -24,7 +24,7 @@ class HtmpyTemplateHighlighter(project: Project?, virtualFile: VirtualFile?, col
         }
 
         SyntaxHighlighterFactory.getSyntaxHighlighter(PythonFileType.INSTANCE, project, virtualFile)?.let {
-            registerLayer(PYTHON_CODE, LayerDescriptor(it, ""))
+            registerLayer(PYTHON_ELEMENT, LayerDescriptor(it, ""))
         }
     }
 }
