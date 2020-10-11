@@ -63,7 +63,7 @@ class HtmpyParseDefinition : ParserDefinition {
 
     override fun createElement(node: ASTNode): PsiElement {
         if (node.elementType == PYTHON_ELEMENT) {
-            return HtmpyPythonElementImpl(node).pyElement
+            return HtmpyPythonElementImpl(node)
         }
         throw RuntimeException()
     }

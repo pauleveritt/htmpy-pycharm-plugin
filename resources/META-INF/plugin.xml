@@ -31,7 +31,7 @@
         <lang.ast.factory language="Htmpy" implementationClass="com.koxudaxi.htmpy.psi.HtmpyASTFactory"/>
         <patterns.patternClass className="com.koxudaxi.htmpy.HtmpyPatterns" alias="htmpy"/>
         <multiHostInjector implementation="com.koxudaxi.htmpy.HtmpyConfigurationInjector"/>
-<!--        <completion.contributor  language="Python" implementationClass="com.koxudaxi.htmpy.completion.HtmpyKeywordCompletionContributor"/>-->
+        <multiHostInjector implementation="com.koxudaxi.htmpy.HtmpyInjector"/>
     </extensions>
 </idea-plugin>
 
