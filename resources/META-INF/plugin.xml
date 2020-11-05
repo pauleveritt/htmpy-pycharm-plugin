@@ -19,7 +19,6 @@
     <depends>com.intellij.modules.python</depends>
     <extensions defaultExtensionNs="org.intellij.intelliLang">
         <languageSupport implementation="com.koxudaxi.htmpy.HtmpyLanguageInjectionSupport"/>
-        <injectionConfig config="META-INF/only-injection.xml"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
         <fileType name="Htmpy" implementationClass="com.koxudaxi.htmpy.HtmpyFileType" fieldName="INSTANCE"
@@ -29,7 +28,6 @@
                                       implementationClass="com.koxudaxi.htmpy.HtmpyFielViewProviderFactory"/>
         <lang.substitutor language="Htmpy" implementationClass="com.koxudaxi.htmpy.HtmpyLanguageSubstitutor"/>
         <lang.ast.factory language="Htmpy" implementationClass="com.koxudaxi.htmpy.psi.HtmpyASTFactory"/>
-        <patterns.patternClass className="com.koxudaxi.htmpy.HtmpyPatterns" alias="htmpy"/>
         <multiHostInjector implementation="com.koxudaxi.htmpy.HtmpyConfigurationInjector"/>
         <multiHostInjector implementation="com.koxudaxi.htmpy.HtmpyInjector"/>
     </extensions>

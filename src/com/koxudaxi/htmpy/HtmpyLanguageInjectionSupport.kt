@@ -7,7 +7,7 @@ import org.intellij.plugins.intelliLang.inject.AbstractLanguageInjectionSupport
 class HtmpyLanguageInjectionSupport : AbstractLanguageInjectionSupport() {
     override fun getId(): String = SUPPORT_ID
 
-    override fun getPatternClasses(): Array<Class<*>> = arrayOf(HtmpyPatterns::class.java)
+    override fun getPatternClasses(): Array<Class<*>> = arrayOf()
 
     override fun isApplicableTo(host: PsiLanguageInjectionHost): Boolean = host is PyElement
 

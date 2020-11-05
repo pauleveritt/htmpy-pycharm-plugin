@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<component name="LanguageInjectionConfiguration">
-    <injection language="Htmpy" injector-id="htmpy" >
-        <display-name>Html Injection</display-name>
-        <place><![CDATA[pyHtmDecoratedFunctionArgument()]]></place>
-        <place><![CDATA[pyReferencedModuleFunctionArgument("viewdom.h.html", 0)]]></place>
-    </injection>
-</component>
