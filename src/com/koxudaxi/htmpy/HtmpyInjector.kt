@@ -18,8 +18,8 @@ class HtmpyInjector : PyInjectorBase() {
         return if (result === PyInjectionUtil.InjectionResult.EMPTY &&
                 context is PsiLanguageInjectionHost &&
                 context.getContainingFile() is PyFile &&
-                (isViewDomHtm(context) || isHtm(context) )) {
-        return registerPyElementInjection(registrar, context)
+                (isViewDomHtm(context) || isHtm(context))) {
+            return registerPyElementInjection(registrar, context)
         } else result
     }
 
@@ -32,6 +32,7 @@ class HtmpyInjector : PyInjectorBase() {
         private fun isHtm(context: PsiElement): Boolean {
             return multiResolveCalledDecoratedFunction(context, HTM_HTM_Q_NAME).any()
         }
+
         private fun isViewDomHtm(context: PsiElement): Boolean {
             val functionQualifiedName = "viewdom.h.html"
             val functionName = functionQualifiedName.split(".").last()
@@ -46,11 +47,13 @@ class HtmpyInjector : PyInjectorBase() {
             registrar.addPlace("", "", host, TextRange(0, text.length))
             registrar.doneInjecting()
 
-            registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
-            val startPoint = text.indexOf("{") + 1
-            val endPoint = text.indexOf("}")
-            registrar.addPlace("", "", host, TextRange(startPoint, endPoint))
-            registrar.doneInjecting()
+            if (text.contains(Regex("\\{.*\\}"))) {
+                registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
+                val startPoint = text.indexOf("{") + 1
+                val endPoint = text.indexOf("}")
+                registrar.addPlace("", "", host, TextRange(startPoint, endPoint))
+                registrar.doneInjecting()
+            }
             return PyInjectionUtil.InjectionResult(true, true)
         }
     }
