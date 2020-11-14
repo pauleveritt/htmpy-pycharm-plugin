@@ -49,7 +49,7 @@ class HtmpyInjector : PyInjectorBase() {
 
             Regex("\\{([^}]*)\\}").findAll(text).forEach {
                 registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
-                registrar.addPlace("", "", host, TextRange(it.range.first, it.range.last))
+                registrar.addPlace("", "", host, TextRange(it.range.first + 1, it.range.last))
                 registrar.doneInjecting()
             }
 

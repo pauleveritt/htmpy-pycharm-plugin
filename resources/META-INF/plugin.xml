@@ -37,5 +37,8 @@
         <multiHostInjector implementation="com.koxudaxi.htmpy.HtmpyConfigurationInjector"/>
         <multiHostInjector implementation="com.koxudaxi.htmpy.HtmpyInjector"/>
     </extensions>
+    <extensions defaultExtensionNs="Pythonid">
+        <pyReferenceResolveProvider implementation="com.koxudaxi.htmpy.psi.resolve.HtmpyReferenceResolveProvider"/>
+    </extensions>
 </idea-plugin>
 
