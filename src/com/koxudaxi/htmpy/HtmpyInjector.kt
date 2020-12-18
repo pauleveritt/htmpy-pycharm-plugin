@@ -29,11 +29,11 @@ class HtmpyInjector : PyInjectorBase() {
 
 
     companion object {
-        private fun isHtm(context: PsiElement): Boolean {
+        fun isHtm(context: PsiElement): Boolean {
             return multiResolveCalledDecoratedFunction(context, HTM_HTM_Q_NAME).any()
         }
 
-        private fun isViewDomHtm(context: PsiElement): Boolean {
+        fun isViewDomHtm(context: PsiElement): Boolean {
             val functionQualifiedName = "viewdom.h.html"
             val functionName = functionQualifiedName.split(".").last()
             return multiResolveCalledPyTargetExpression(context, functionName, 0)

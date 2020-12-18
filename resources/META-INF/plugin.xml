@@ -23,6 +23,7 @@
 
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.python</depends>
+    <depends>org.intellij.intelliLang</depends>
     <extensions defaultExtensionNs="org.intellij.intelliLang">
         <languageSupport implementation="com.koxudaxi.htmpy.HtmpyLanguageInjectionSupport"/>
     </extensions>
@@ -36,6 +37,7 @@
         <lang.ast.factory language="Htmpy" implementationClass="com.koxudaxi.htmpy.psi.HtmpyASTFactory"/>
         <multiHostInjector implementation="com.koxudaxi.htmpy.HtmpyConfigurationInjector"/>
         <multiHostInjector implementation="com.koxudaxi.htmpy.HtmpyInjector"/>
+        <localInspection implementationClass="com.koxudaxi.htmpy.HtmpyInspection" displayName="HtmpyInspection"/>
     </extensions>
     <extensions defaultExtensionNs="Pythonid">
         <pyReferenceResolveProvider implementation="com.koxudaxi.htmpy.psi.resolve.HtmpyReferenceResolveProvider"/>
