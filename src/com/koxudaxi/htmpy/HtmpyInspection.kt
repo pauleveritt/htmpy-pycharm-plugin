@@ -10,7 +10,6 @@ import com.jetbrains.python.inspections.PyInspection
 import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.psi.PyClass
 import com.jetbrains.python.psi.PyStringLiteralExpression
-import com.jetbrains.python.psi.impl.PyClassImpl
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 
 class HtmpyInspection : PyInspection() {
@@ -31,19 +30,18 @@ class HtmpyInspection : PyInspection() {
                 val attribute = Regex("\\{([^}\\s]*)\\}").findAll(it.value).firstOrNull()
                 val owner = ScopeUtil.getScopeOwner(node)
                 if (attribute != null && attribute.value.length > 2 && owner != null) {
-                    val dataclass =
+                    val psiElement =
                         PyResolveUtil.resolveLocally(owner, attribute.destructured.component1()).firstOrNull()
-                    // TODO: check element type
-
-                    if (dataclass is PyClass) {
-                        val keys: List<String> =
-                            Regex("([^=}\\s]*)=").findAll(it.value).toList().map { key -> key.destructured.component1() }
+                    if (psiElement is PyClass && isDataclass(psiElement)) {
+                        val keys =
+                            Regex("([^=}\\s]+)[=\\s/]").findAll(it.value).toList()
+                        val keyNames = keys.map { key -> key.destructured.component1() }
                                 .toList()
-                        dataclass.classAttributes.forEach { instanceAttribute ->
-                            if (!keys.contains(instanceAttribute.name)) {
+                        psiElement.classAttributes.forEach { instanceAttribute ->
+                            if (!instanceAttribute.hasAssignedValue() && !keyNames.contains(instanceAttribute.name)) {
                                 registerProblem(
                                     node,
-                                    "missing '${instanceAttribute.name}'",
+                                    "missing a required argument: '${instanceAttribute.name}'",
                                     ProblemHighlightType.WARNING,
                                     null,
                                     TextRange(
@@ -52,6 +50,21 @@ class HtmpyInspection : PyInspection() {
                                     )
                                 )
                             }
+
+                        }
+                        keys.filter {  key ->
+                            psiElement.findClassAttribute(key.destructured.component1(), true, myTypeEvalContext) == null
+                        }.forEach { key ->
+                            registerProblem(
+                                node,
+                                "invalid a argument: '${key.destructured.component1()}'",
+                                ProblemHighlightType.WARNING,
+                                null,
+                                TextRange(
+                                    it.range.first + attribute.range.first -1 + key.range.first,
+                                    it.range.first + attribute.range.first -1 + key.range.last
+                                )
+                            )
                         }
                     }
                 }

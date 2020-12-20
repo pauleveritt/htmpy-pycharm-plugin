@@ -9,6 +9,14 @@ import com.jetbrains.python.psi.types.TypeEvalContext
 
 const val HTM_HTM_Q_NAME = "htm.htm"
 
+const val DATA_CLASS_Q_NAME = "dataclasses.dataclass"
+
+val DATA_CLASS_QUALIFIED_NAME = QualifiedName.fromDottedString(DATA_CLASS_Q_NAME)
+
+val DATA_CLASS_QUALIFIED_NAMES = listOf(
+    DATA_CLASS_QUALIFIED_NAME
+)
+
 internal fun hasDecorator(pyDecoratable: PyDecoratable, refName: String): Boolean {
     pyDecoratable.decoratorList?.decorators?.mapNotNull { it.callee as? PyReferenceExpression }?.forEach {
         PyResolveUtil.resolveImportedElementQNameLocally(it).forEach { decoratorQualifiedName ->
@@ -67,4 +75,15 @@ internal fun multiResolveCalledDecoratedFunction(expression: Any?, decoratorQNam
             .filter { hasDecorator(it, decoratorQName) }
             .toList()
 
+}
+
+internal fun hasDecorator(pyDecoratable: PyDecoratable, refNames: List<QualifiedName>): Boolean {
+    return pyDecoratable.decoratorList?.decorators?.mapNotNull { it.callee as? PyReferenceExpression }?.any {
+        PyResolveUtil.resolveImportedElementQNameLocally(it).any { decoratorQualifiedName ->
+            refNames.any { refName -> decoratorQualifiedName == refName }
+        }
+    } ?: false
+}
+internal fun isDataclass(pyClass: PyClass): Boolean {
+    return hasDecorator(pyClass, DATA_CLASS_QUALIFIED_NAMES)
 }
