@@ -34,7 +34,7 @@ class HtmpyInspection : PyInspection() {
                         PyResolveUtil.resolveLocally(owner, attribute.destructured.component1()).firstOrNull()
                     if (psiElement is PyClass && isDataclass(psiElement)) {
                         val keys =
-                            Regex("([^=}\\s]+)[=\\s/]").findAll(it.value).toList()
+                            Regex("([^=}\\s]+)[=\\s/]([^\\s/]*)").findAll(it.value).toList()
                         val keyNames = keys.map { key -> key.destructured.component1() }
                                 .toList()
                         psiElement.classAttributes.forEach { instanceAttribute ->
@@ -52,19 +52,18 @@ class HtmpyInspection : PyInspection() {
                             }
 
                         }
-                        keys.filter {  key ->
-                            psiElement.findClassAttribute(key.destructured.component1(), true, myTypeEvalContext) == null
-                        }.forEach { key ->
-                            registerProblem(
+                        keys.forEach { key ->
+                            val name = key.destructured.component1()
+                            if (psiElement.findClassAttribute(name, true, myTypeEvalContext) == null) {
+                                val startPoint = it.range.first + attribute.range.first -1 + key.range.first
+                                registerProblem(
                                 node,
-                                "invalid a argument: '${key.destructured.component1()}'",
+                                "invalid a argument: '${name}'",
                                 ProblemHighlightType.WARNING,
                                 null,
-                                TextRange(
-                                    it.range.first + attribute.range.first -1 + key.range.first,
-                                    it.range.first + attribute.range.first -1 + key.range.last
-                                )
+                                TextRange(startPoint, startPoint + name.length)
                             )
+                            }
                         }
                     }
                 }
