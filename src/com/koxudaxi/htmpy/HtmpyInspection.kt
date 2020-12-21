@@ -33,6 +33,7 @@ class HtmpyInspection : PyInspection() {
                     val psiElement =
                         PyResolveUtil.resolveLocally(owner, attribute.destructured.component1()).firstOrNull()
                     if (psiElement is PyClass && isDataclass(psiElement)) {
+                        //TODO: detecting components.
                         val keys =
                             Regex("([^=}\\s]+)[=\\s/]([^\\s/]*)").findAll(it.value).toList()
                         val keyNames = keys.map { key -> key.destructured.component1() }
