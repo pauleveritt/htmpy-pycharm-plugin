@@ -1,7 +1,9 @@
 package com.koxudaxi.htmpy
 
+import com.intellij.psi.PsiElement
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.QualifiedName
+import com.jetbrains.python.codeInsight.dataflow.scope.ScopeUtil
 import com.jetbrains.python.psi.*
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
@@ -27,26 +29,33 @@ internal fun hasDecorator(pyDecoratable: PyDecoratable, refName: String): Boolea
 }
 
 
-internal fun getContext(pyExpression: PyExpression): TypeEvalContext {
-    return TypeEvalContext.codeAnalysis(pyExpression.project, pyExpression.containingFile)
+internal fun getContext(pyElement: PyElement): TypeEvalContext {
+    return TypeEvalContext.codeAnalysis(pyElement.project, pyElement.containingFile)
 }
 
-internal fun getResolveElements(referenceExpression: PyReferenceExpression, context: TypeEvalContext): Array<ResolveResult> {
+internal fun getResolveElements(
+    referenceExpression: PyReferenceExpression,
+    context: TypeEvalContext
+): Array<ResolveResult> {
     return PyResolveContext.defaultContext().withTypeEvalContext(context).let {
         referenceExpression.getReference(it).multiResolve(false)
     }
 }
 
-internal fun multiResolveCalledPyTargetExpression(expression: Any?, functionName: String?, index: Int): List<PyTargetExpression> {
+internal fun multiResolveCalledPyTargetExpression(
+    expression: Any?,
+    functionName: String?,
+    index: Int
+): List<PyTargetExpression> {
     if (!isCallArgument(expression, functionName, index)) return emptyList()
 
     val call = (expression as? PyExpression)?.parent?.parent as? PyCallExpression ?: return emptyList()
     val referenceExpression = call.callee as? PyReferenceExpression ?: return emptyList()
     val resolveResults = getResolveElements(referenceExpression, getContext(call))
     return PyUtil.filterTopPriorityResults(resolveResults)
-            .asSequence()
-            .filterIsInstance(PyTargetExpression::class.java)
-            .toList()
+        .asSequence()
+        .filterIsInstance(PyTargetExpression::class.java)
+        .toList()
 }
 
 internal fun isCallArgument(expression: Any?, functionName: String?, index: Int): Boolean {
@@ -70,10 +79,10 @@ internal fun multiResolveCalledDecoratedFunction(expression: Any?, decoratorQNam
     val referenceToCallee = call.callee as? PyReferenceExpression ?: return emptyList()
     val resolveResults = getResolveElements(referenceToCallee, getContext(expression))
     return PyUtil.filterTopPriorityResults(resolveResults)
-            .asSequence()
-            .filterIsInstance(PyFunction::class.java)
-            .filter { hasDecorator(it, decoratorQName) }
-            .toList()
+        .asSequence()
+        .filterIsInstance(PyFunction::class.java)
+        .filter { hasDecorator(it, decoratorQName) }
+        .toList()
 
 }
 
@@ -84,6 +93,45 @@ internal fun hasDecorator(pyDecoratable: PyDecoratable, refNames: List<Qualified
         }
     } ?: false
 }
+
 internal fun isDataclass(pyClass: PyClass): Boolean {
     return hasDecorator(pyClass, DATA_CLASS_QUALIFIED_NAMES)
+}
+
+fun isHtm(context: PsiElement): Boolean {
+    return multiResolveCalledDecoratedFunction(context, HTM_HTM_Q_NAME).any()
+}
+
+fun isViewDomHtm(context: PsiElement): Boolean {
+    val functionQualifiedName = "viewdom.h.html"
+    val functionName = functionQualifiedName.split(".").last()
+    return multiResolveCalledPyTargetExpression(context, functionName, 0)
+        .filter { it.qualifiedName == functionQualifiedName }.any()
+}
+
+fun isHtmpy(psiElement: PsiElement): Boolean = isViewDomHtm(psiElement) || isHtm(psiElement)
+
+
+fun collectComponents(
+    psiElement: PsiElement,
+    action: (resolvedComponent: PyClass, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit
+) {
+    val text = psiElement.text
+    Regex("<[^>]*\\{([^}]*)\\}[^/>]*(/\\s*>|$)").findAll(text).forEach { tag ->
+        val component = Regex("\\{([^}\\s]*)\\}").findAll(tag.value).firstOrNull()
+        val owner = ScopeUtil.getScopeOwner(psiElement)
+        if (component != null && component.value.length > 2 && owner != null) {
+            val resolvedElement =
+                PyResolveUtil.resolveLocally(owner, component.destructured.component1()).firstOrNull()
+            if (resolvedElement is PyClass && isDataclass(resolvedElement)) {
+                val keys =
+                    Regex("([^=}\\s]+)=([^\\s/]*)").findAll(tag.value)
+                        .map { key ->
+                            Pair(key.destructured.component1(), key)
+                        }.toMap()
+                action(resolvedElement, tag, component, keys)
+            }
+        }
+    }
+
 }
