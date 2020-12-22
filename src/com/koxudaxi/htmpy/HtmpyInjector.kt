@@ -37,46 +37,51 @@ class HtmpyInjector : PyInjectorBase() {
             registrar: MultiHostRegistrar,
             host: PsiLanguageInjectionHost
         ): PyInjectionUtil.InjectionResult {
-            val text = host.text
             registrar.startInjecting(HtmpyLanguage.INSTANCE)
-            registrar.addPlace("", "", host, TextRange(0, text.length))
-            registrar.doneInjecting()
-
-            collectComponents(host) { resolvedComponent, tag, component, keys ->
-                val componentRange = component.destructured.match.range
-                registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
-                registrar.addPlace(
-                    "",
-                    "",
-                    host,
-                    TextRange(tag.range.first + componentRange.first + 1, tag.range.first + componentRange.last)
-                )
+            registrar.addPlace("", "", host, TextRange(0,  host.text.length))
+            try {
                 registrar.doneInjecting()
-                val parameters = keys.mapNotNull { (name, key) ->
-                    val keyValue = key.destructured.toList()
-                    if (key.destructured.toList().size > 1) {
-                        Pair(name, keyValue[1])
-                    } else {
-                        null
-                    }
-                }.toMap()
-                parameters.forEach { (name, value) ->
-                    val key = keys[name]!!
-                    val keyRangeFirst =
-                        tag.range.first + componentRange.first + key.destructured.match.range.first + name.length
-                    val otherParameters =
-                        parameters.filter { (k, _) -> k != name }.map { (k, v) -> "${k}=${v}," }.joinToString(" ")
-                    registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
-                    registrar.addPlace(
-                        "${resolvedComponent.name}(${otherParameters}${name}=",
-                        ")",
-                        host,
-                        TextRange(keyRangeFirst, keyRangeFirst + value.length)
-                    )
-                    registrar.doneInjecting()
-                }
+            } catch (e: Exception) {
+                return PyInjectionUtil.InjectionResult.EMPTY
             }
 
+            collectComponents(host,
+                actionForComponent = { resolvedComponent, tag, component, keys ->
+                    val componentRange = component.destructured.match.range
+                    val parameters = keys.mapNotNull { (name, key) ->
+                        val keyValue = key.destructured.toList()
+                        if (key.destructured.toList().size > 1) {
+                            Pair(name, keyValue[1])
+                        } else {
+                            null
+                        }
+                    }.toMap()
+                    parameters.forEach { (name, value) ->
+                        val key = keys[name]!!
+                        val keyRangeFirst =
+                            tag.range.first + componentRange.first + key.destructured.match.range.first + name.length
+                        val otherParameters =
+                            parameters
+                                .filter { (k, v) -> k != name && v.isNotEmpty() &&  host.text[0] != v[0]}
+                                .map { (k, v) -> "${k}=${v}," }.joinToString(" ")
+                        if (host.textLength > keyRangeFirst + value.length && host.text[0] != host.text[keyRangeFirst]) {
+                            registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
+                            registrar.addPlace(
+                                "${resolvedComponent.name}(${otherParameters}${name}=",
+                                ")",
+                                host,
+                                TextRange(keyRangeFirst, keyRangeFirst + value.length)
+                            )
+                            registrar.doneInjecting()
+                        }
+                    }
+                },
+                actionForTag = { tag, first, last ->
+                    registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
+                    registrar.addPlace("", "", host, TextRange(first, last))
+                    registrar.doneInjecting()
+                }
+            )
             return PyInjectionUtil.InjectionResult(true, true)
         }
     }

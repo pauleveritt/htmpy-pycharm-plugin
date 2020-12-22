@@ -5,6 +5,7 @@ import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.QualifiedName
 import com.jetbrains.python.codeInsight.dataflow.scope.ScopeUtil
 import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.jetbrains.python.psi.types.TypeEvalContext
@@ -31,6 +32,10 @@ internal fun hasDecorator(pyDecoratable: PyDecoratable, refName: String): Boolea
 
 internal fun getContext(pyElement: PyElement): TypeEvalContext {
     return TypeEvalContext.codeAnalysis(pyElement.project, pyElement.containingFile)
+}
+
+internal fun getContextForCodeCompletion(pyElement: PyElement): TypeEvalContext {
+    return TypeEvalContext.codeCompletion(pyElement.project, pyElement.containingFile)
 }
 
 internal fun getResolveElements(
@@ -114,22 +119,40 @@ fun isHtmpy(psiElement: PsiElement): Boolean = isViewDomHtm(psiElement) || isHtm
 
 fun collectComponents(
     psiElement: PsiElement,
-    action: (resolvedComponent: PyClass, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit
+    actionForComponent: (resolvedComponent: PyClass, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit,
+    actionForTag: ((tag: MatchResult, fisrt: Int, last: Int) -> Unit)? = null
 ) {
     val text = psiElement.text
-    Regex("<[^>]*\\{([^}]*)\\}[^/>]*(/\\s*>|$)").findAll(text).forEach { tag ->
-        val component = Regex("\\{([^}\\s]*)\\}").findAll(tag.value).firstOrNull()
-        val owner = ScopeUtil.getScopeOwner(psiElement)
-        if (component != null && component.value.length > 2 && owner != null) {
-            val resolvedElement =
-                PyResolveUtil.resolveLocally(owner, component.destructured.component1()).firstOrNull()
-            if (resolvedElement is PyClass && isDataclass(resolvedElement)) {
-                val keys =
-                    Regex("([^=}\\s]+)=([^\\s/]*)").findAll(tag.value)
-                        .map { key ->
-                            Pair(key.destructured.component1(), key)
-                        }.toMap()
-                action(resolvedElement, tag, component, keys)
+    Regex("<[^>]*\\{([^}]*)\\}[^/>]*(/\\s*>|.*$)").findAll(text).forEach { element ->
+        val tag = Regex("\\{([^}]*)\\}").findAll(element.value).firstOrNull()
+        if (tag != null) {
+            val owner = ScopeUtil.getScopeOwner(psiElement)
+            if (tag.value.length > 2 && owner != null) {
+                val dataClass =
+                    PyResolveUtil.resolveLocally(owner, tag.destructured.component1()).firstOrNull()
+                        .let {
+                            when (it) {
+                                is PyImportElement -> {
+                                    PyUtil.filterTopPriorityResults(it.multiResolve())
+                                        .asSequence()
+                                        .map { result -> result.element }
+                                        .filterIsInstance<PyClass>().firstOrNull { pyClass -> isDataclass(pyClass) }
+                                }
+                                else -> (it as? PyClass)?.takeIf { pyClass -> isDataclass(pyClass) }
+                            }
+                        }
+
+                if (dataClass != null) {
+                    val keys =
+                        Regex("([^=}\\s]+)=([^\\s/]*)").findAll(element.value)
+                            .map { key ->
+                                Pair(key.destructured.component1(), key)
+                            }.toMap()
+                    actionForComponent(dataClass, element, tag, keys)
+                }
+            }
+            if (actionForTag != null && tag.value.length > 2) {
+                actionForTag(tag, element.range.first + tag.range.first + 1, element.range.first + tag.range.last)
             }
         }
     }

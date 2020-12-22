@@ -22,7 +22,7 @@ class HtmpyInspection : PyInspection() {
         override fun visitPyStringLiteralExpression(node: PyStringLiteralExpression) {
             super.visitPyStringLiteralExpression(node)
             if (!isHtmpy(node)) return
-            collectComponents(node) { resolvedComponent, tag, component, keys ->
+            collectComponents(node, { resolvedComponent, tag, component, keys ->
                 resolvedComponent.classAttributes.forEach { instanceAttribute ->
                     if (!instanceAttribute.hasAssignedValue() && !keys.contains(instanceAttribute.name)) {
                         registerProblem(
@@ -62,7 +62,7 @@ class HtmpyInspection : PyInspection() {
                     }
                 }
 
-            }
+            })
         }
     }
 }

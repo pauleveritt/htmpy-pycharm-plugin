@@ -29,8 +29,8 @@ class HtmpyKeywordCompletionContributor : CompletionContributor() {
                         position.parent.containingFile.getUserData(FileContextUtil.INJECTED_IN_ELEMENT)?.element as? PyElement
                             ?: return
                     if (!isHtmpy(hostElement)) return
-                    val typeContext = getContext(hostElement)
-                    collectComponents(hostElement) { resolvedComponent, tag, _, keys ->
+                    val typeContext = getContextForCodeCompletion(hostElement)
+                    collectComponents(hostElement, { resolvedComponent, tag, _, keys ->
                         if (tag.range.contains(position.textOffset)) {
                             resolvedComponent.classAttributes.filter { instanceAttribute ->
                                 !instanceAttribute.hasAssignedValue() && !keys.contains(instanceAttribute.name)
@@ -49,7 +49,7 @@ class HtmpyKeywordCompletionContributor : CompletionContributor() {
                                     }
                                 }
                         }
-                    }
+                    })
                 }
             }
         )
