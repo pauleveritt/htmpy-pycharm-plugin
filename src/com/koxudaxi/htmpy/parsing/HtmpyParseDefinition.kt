@@ -43,21 +43,21 @@ class HtmpyParseDefinition : ParserDefinition {
     }
 
     @NotNull
-    override fun createParser(project: Project?): PsiParser? {
+    override fun createParser(project: Project?): @NotNull PsiParser {
         return HtmpyParser()
     }
 
     @NotNull
-    override fun getFileNodeType(): IFileElementType? {
+    override fun getFileNodeType(): @NotNull IFileElementType {
         return FILE
     }
 
     @NotNull
-    override fun createFile(viewProvider: FileViewProvider?): PsiFile? {
-        return viewProvider?.let { HtmpyFile(it) }
+    override fun createFile(viewProvider: FileViewProvider): PsiFile {
+        return HtmpyFile(viewProvider)
     }
 
-    override fun spaceExistenceTypeBetweenTokens(left: ASTNode?, right: ASTNode?): ParserDefinition.SpaceRequirements? {
+    override fun spaceExistenceTypeBetweenTokens(left: ASTNode?, right: ASTNode?): ParserDefinition.SpaceRequirements {
         return ParserDefinition.SpaceRequirements.MAY
     }
 
