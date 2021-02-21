@@ -144,7 +144,9 @@ fun collectComponents(
 
                 if (dataClass != null) {
                     val keys =
-                        Regex("([^=}\\s]+)=([^\\s/]*)").findAll(element.value)
+                        (Regex("([^=}\\s]+)=([^\\s/]*)").findAll(element.value)
+                                + Regex("([^=}\\s]+)=\"([^\"]*)").findAll(element.value)
+                                + Regex("([^=}\\s]+)=(\\{[^\"]*\\})").findAll(element.value))
                             .map { key ->
                                 Pair(key.destructured.component1(), key)
                             }.toMap()
