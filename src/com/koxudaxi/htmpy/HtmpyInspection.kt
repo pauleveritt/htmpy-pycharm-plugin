@@ -5,9 +5,12 @@ import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElementVisitor
+import com.jetbrains.python.documentation.PythonDocumentationProvider
 import com.jetbrains.python.inspections.PyInspection
 import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.psi.PyStringLiteralExpression
+import com.jetbrains.python.psi.PyUtil
+import com.jetbrains.python.psi.types.PyTypeChecker
 
 class HtmpyInspection : PyInspection() {
 
@@ -39,8 +42,10 @@ class HtmpyInspection : PyInspection() {
 
                 }
                 keys.forEach { (name, key) ->
-                    if (resolvedComponent.findClassAttribute(name, true, myTypeEvalContext) != null) {
-                        if (key.destructured.component2().isEmpty()) {
+                    val attribute = resolvedComponent.findClassAttribute(name, true, myTypeEvalContext)
+                    if (attribute != null) {
+                        val value = key.destructured.component2()
+                        if (value.isEmpty()) {
                             val startPoint = tag.range.first + component.range.first + key.range.first
                             registerProblem(
                                 node,
@@ -49,6 +54,28 @@ class HtmpyInspection : PyInspection() {
                                 null,
                                 TextRange(startPoint + name.length, startPoint + name.length + 1)
                             )
+                        } else {
+                            val expectedType =  myTypeEvalContext.getType(attribute)
+                            val actualValue = when {
+                                value.startsWith("\"{") && value.endsWith("}\"") -> value.substring(2, value.length - 2)
+                                value.startsWith('"') && value.endsWith('"') -> value
+                                value.startsWith('{') && value.endsWith('}') -> value.substring(1, value.length - 1)
+                                else -> "\"$value\""
+                            }
+                            val actualType = PyUtil.createExpressionFromFragment(actualValue, node)
+                                ?.let { getPyTypeFromPyExpression(it, myTypeEvalContext) }
+
+                            if (! PyTypeChecker.match(expectedType, actualType, myTypeEvalContext)
+                            ) {
+                                val startPoint = tag.range.first + component.range.first
+                                registerProblem(node, String.format("Expected type '%s', got '%s' instead",
+                                    PythonDocumentationProvider.getTypeName(expectedType, myTypeEvalContext),
+                                    PythonDocumentationProvider.getTypeName(actualType, myTypeEvalContext)),
+                                    ProblemHighlightType.WARNING,
+                                    null,
+                                    TextRange(startPoint + key.range.first - 1, startPoint +  key.range.last)
+                                )
+                            }
                         }
                     } else {
                         val startPoint = tag.range.first + component.range.first - 1 + key.range.first

@@ -5,9 +5,9 @@ import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.QualifiedName
 import com.jetbrains.python.codeInsight.dataflow.scope.ScopeUtil
 import com.jetbrains.python.psi.*
-import com.jetbrains.python.psi.impl.PyReferenceExpressionImpl
 import com.jetbrains.python.psi.resolve.PyResolveContext
 import com.jetbrains.python.psi.resolve.PyResolveUtil
+import com.jetbrains.python.psi.types.PyType
 import com.jetbrains.python.psi.types.TypeEvalContext
 
 const val HTM_HTM_Q_NAME = "htm.htm"
@@ -159,4 +159,29 @@ fun collectComponents(
         }
     }
 
+}
+
+fun getPyTypeFromPyExpression(pyExpression: PyExpression, context: TypeEvalContext): PyType? {
+    return when (pyExpression) {
+        is PyType -> pyExpression
+        is PyReferenceExpression -> {
+//            val resolveResults = getResolveElements(pyExpression, context)
+//            PyUtil.filterTopPriorityResults(resolveResults)
+//                .filterIsInstance<PyTypedElement>()
+//                .map { context.getType(it) }
+//                .firstOrNull() ?:
+                PyResolveUtil.resolveLocally(pyExpression).firstOrNull()
+                .let {
+                    when (it) {
+                        is PyImportElement -> {
+                            PyUtil.filterTopPriorityResults(it.multiResolve())
+                                .firstOrNull()
+                        }
+                        else -> it
+                    }
+                }
+                ?.let { (it as? PyTypedElement)?.let { typedElement-> context.getType(typedElement)} }
+        }
+        else -> null
+    }
 }
