@@ -10,7 +10,11 @@ import com.jetbrains.python.inspections.PyInspection
 import com.jetbrains.python.inspections.PyInspectionVisitor
 import com.jetbrains.python.psi.PyStringLiteralExpression
 import com.jetbrains.python.psi.PyUtil
+import com.jetbrains.python.psi.impl.stubs.PyDataclassFieldStubImpl
+import com.jetbrains.python.psi.stubs.PyDataclassFieldStub
+import com.jetbrains.python.psi.types.PyNoneType
 import com.jetbrains.python.psi.types.PyTypeChecker
+import com.jetbrains.python.psi.types.PyUnionType
 
 class HtmpyInspection : PyInspection() {
 
@@ -26,18 +30,21 @@ class HtmpyInspection : PyInspection() {
             super.visitPyStringLiteralExpression(node)
             if (!isHtmpy(node)) return
             collectComponents(node, { resolvedComponent, tag, component, keys ->
-                resolvedComponent.classAttributes.forEach { instanceAttribute ->
-                    if (!instanceAttribute.hasAssignedValue() && !keys.contains(instanceAttribute.name)) {
-                        registerProblem(
-                            node,
-                            "missing a required argument: '${instanceAttribute.name}'",
-                            ProblemHighlightType.WARNING,
-                            null,
-                            TextRange(
-                                tag.range.first + component.range.first + 1,
-                                component.value.length + tag.range.first
+                resolvedComponent.classAttributes.forEach { classAttribute ->
+                    if (!classAttribute.hasAssignedValue() && !keys.contains(classAttribute.name)) {
+                        val field = PyDataclassFieldStubImpl.create(classAttribute)
+                        if (!(field is PyDataclassFieldStub && !field.initValue()) && (myTypeEvalContext.getType(classAttribute) as? PyUnionType)?.members?.any { it is PyNoneType } != true) {
+                            registerProblem(
+                                node,
+                                "missing a required argument: '${classAttribute.name}'",
+                                ProblemHighlightType.WARNING,
+                                null,
+                                TextRange(
+                                    tag.range.first + component.range.first + 1,
+                                    component.value.length + tag.range.first
+                                )
                             )
-                        )
+                        }
                     }
 
                 }
