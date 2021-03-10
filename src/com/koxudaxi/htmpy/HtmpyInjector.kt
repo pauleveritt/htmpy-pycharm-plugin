@@ -37,54 +37,26 @@ class HtmpyInjector : PyInjectorBase() {
             registrar: MultiHostRegistrar,
             host: PsiLanguageInjectionHost
         ): PyInjectionUtil.InjectionResult {
+            val text = host.text
+            val stringValue = (host as? PyStringLiteralExpression)?.stringValue ?: return PyInjectionUtil.InjectionResult.EMPTY
+            if (text.length <= 2 || stringValue != text.substring(1, text.lastIndex)) {
+                    return PyInjectionUtil.InjectionResult.EMPTY
+            }
             registrar.startInjecting(HtmpyLanguage.INSTANCE)
-            registrar.addPlace("", "", host, TextRange(0,  host.text.length))
+            registrar.addPlace("", "", host, TextRange(0,  text.length))
             try {
                 registrar.doneInjecting()
             } catch (e: Exception) {
                 return PyInjectionUtil.InjectionResult.EMPTY
             }
-
-//            collectComponents(host,
-//                actionForComponent = { resolvedComponent, tag, component, keys ->
-//                    val componentRange = component.destructured.match.range
-//                    val parameters = keys.mapNotNull { (name, key) ->
-//                        val keyValue = key.destructured.toList()
-//                        val value = keyValue[1]
-//                        if (key.destructured.toList().size > 1) {
-//                            Pair(name, value)
-//                        } else {
-//                            null
-//                        }
-//                    }.toMap()
-//                    parameters.forEach { (name, value) ->
-//                        val key = keys[name]!!
-//                        val keyRangeFirst =
-//                            tag.range.first + componentRange.first + key.destructured.match.range.first + name.length
-//                        Regex("\\{([^}]*)\\}").findAll(value).forEach {
-//                            if (it.value.length > 2) {
-//                                registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
-//                                registrar.addPlace(
-//                                    "",
-//                                    "",
-//                                    host,
-//                                    TextRange(keyRangeFirst + it.range.first + 1, keyRangeFirst + it.range.last + 1)
-//                                )
-//                                registrar.doneInjecting()
-//                            }
-//                        }
-//                    }
-//                },
-//                actionForTag = { _, first, last ->
-//                    registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
-//                    registrar.addPlace("", "", host, TextRange(first, last))
-//                    registrar.doneInjecting()
-//                }
-//            )
-            Regex("\\{([^}]*)\\}").findAll(host.text).drop(0).forEach {
+            Regex("\\{([^}]*)\\}").findAll(text).drop(0).forEach {
                 registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
-                registrar.addPlace("", "", host, TextRange(it.range.first + 1, it.range.last))
-                registrar.doneInjecting()
+                registrar.addPlace("", "", host,  TextRange(it.range.first + 1, it.range.last))
+                try {
+                    registrar.doneInjecting()
+                } catch (e: Exception) {
+                    return PyInjectionUtil.InjectionResult.EMPTY
+                }
             }
             return PyInjectionUtil.InjectionResult(true, true)
         }

@@ -119,7 +119,8 @@ fun isHtmpy(psiElement: PsiElement): Boolean = isViewDomHtm(psiElement) || isHtm
 
 fun collectComponents(
     psiElement: PsiElement,
-    actionForComponent: (resolvedComponent: PyClass, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit,
+    actionForComponent: (resolvedComponent: PyTypedElement, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit,
+    actionForEmptyComponent: (resolvedComponent: PyTypedElement, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit,
     actionForTag: ((tag: MatchResult, fisrt: Int, last: Int) -> Unit)? = null
 ) {
     val text = psiElement.text
@@ -128,7 +129,7 @@ fun collectComponents(
         if (tag != null) {
             val owner = ScopeUtil.getScopeOwner(psiElement)
             if (tag.value.length > 2 && owner != null) {
-                val dataClass =
+                val component =
                     PyResolveUtil.resolveLocally(owner, tag.destructured.component1()).firstOrNull()
                         .let {
                             when (it) {
@@ -136,13 +137,18 @@ fun collectComponents(
                                     PyUtil.filterTopPriorityResults(it.multiResolve())
                                         .asSequence()
                                         .map { result -> result.element }
-                                        .filterIsInstance<PyClass>().firstOrNull { pyClass -> isDataclass(pyClass) }
-                                }
-                                else -> (it as? PyClass)?.takeIf { pyClass -> isDataclass(pyClass) }
+                                        .firstOrNull { element ->  when(element) {
+                                            is PyClass -> isDataclass(element)
+                                            is PyFunction -> true
+                                            else -> false
+                                            }
+                                        }
+                                 }
+                                else -> (it as? PyClass)?.takeIf { pyClass -> isDataclass(pyClass) } ?: (it as? PyFunction)
                             }
                         }
 
-                if (dataClass != null) {
+                if (component is PyTypedElement) {
                     val keys =
                         (Regex("([^=}\\s]+)=([^\\s/]*)").findAll(element.value)
                                 + Regex("([^=}\\s]+)=\"([^\"]*)").findAll(element.value)
@@ -150,7 +156,12 @@ fun collectComponents(
                             .map { key ->
                                 Pair(key.destructured.component1(), key)
                             }.toMap()
-                    actionForComponent(dataClass, element, tag, keys)
+                    actionForComponent(component, element, tag, keys)
+
+                    val emptyKeys = Regex("([^=}\\s]+)=(\\s+)").findAll(element.value).map { key ->
+                        Pair(key.destructured.component1(), key)
+                    }.toMap()
+                    actionForEmptyComponent(component, element, tag,  emptyKeys)
                 }
             }
             if (actionForTag != null && tag.value.length > 2) {
@@ -182,6 +193,6 @@ fun getPyTypeFromPyExpression(pyExpression: PyExpression, context: TypeEvalConte
                 }
                 ?.let { (it as? PyTypedElement)?.let { typedElement-> context.getType(typedElement)} }
         }
-        else -> null
+        else -> context.getType(pyExpression)
     }
 }
