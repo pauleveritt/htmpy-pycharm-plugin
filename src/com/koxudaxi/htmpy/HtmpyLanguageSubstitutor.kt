@@ -7,7 +7,7 @@ import com.intellij.psi.LanguageSubstitutor
 import com.koxudaxi.htmpy.HtmpyLanguage.Companion.INSTANCE
 
 class HtmpyLanguageSubstitutor : LanguageSubstitutor() {
-    override fun getLanguage(file: VirtualFile, project: Project): Language? {
+    override fun getLanguage(file: VirtualFile, project: Project): Language {
         return INSTANCE
     }
 }

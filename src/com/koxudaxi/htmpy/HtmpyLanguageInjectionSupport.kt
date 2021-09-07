@@ -11,7 +11,7 @@ class HtmpyLanguageInjectionSupport : AbstractLanguageInjectionSupport() {
 
     override fun isApplicableTo(host: PsiLanguageInjectionHost): Boolean = host is PyElement
 
-    override fun getHelpId(): String? = "reference.settings.language.injection.generic.htmpy"
+    override fun getHelpId(): String = "reference.settings.language.injection.generic.htmpy"
 
     companion object {
         private const val SUPPORT_ID: String = "htmpy"

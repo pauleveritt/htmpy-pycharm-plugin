@@ -39,7 +39,7 @@ class HtmpyFileViewProvider @JvmOverloads constructor(manager: PsiManager, file:
     }
 
     override fun createFile(lang: Language): PsiFile? {
-        val parserDefinition = getDefinition(lang) ?: return null
+        val parserDefinition = getDefinition(lang)
         return when {
             lang.`is`(templateDataLanguage) -> {
                 val file = parserDefinition.createFile(this) as PsiFileImpl
@@ -59,7 +59,7 @@ class HtmpyFileViewProvider @JvmOverloads constructor(manager: PsiManager, file:
     }
 
     companion object {
-        private val TEMPLATE_DATA_TO_LANG = ContainerUtil.newConcurrentMap<String, TemplateDataElementType>()
+        private val TEMPLATE_DATA_TO_LANG = ContainerUtil.createConcurrentSoftMap<String, TemplateDataElementType>()
         private fun getTemplateDataElementType(lang: Language): TemplateDataElementType {
             val result = TEMPLATE_DATA_TO_LANG[lang.id]
             if (result != null) return result

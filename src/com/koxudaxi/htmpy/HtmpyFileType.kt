@@ -36,7 +36,7 @@ class HtmpyFileType protected constructor(lang: Language) : LanguageFileType(lan
         return DEFAULT_EXTENSION
     }
 
-    override fun getIcon(): Icon? {
+    override fun getIcon(): Icon {
         return AllIcons.FileTypes.Html
     }
 

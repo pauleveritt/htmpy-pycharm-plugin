@@ -42,7 +42,7 @@ internal fun getResolveElements(
     referenceExpression: PyReferenceExpression,
     context: TypeEvalContext
 ): Array<ResolveResult> {
-    return PyResolveContext.defaultContext().withTypeEvalContext(context).let {
+    return PyResolveContext.defaultContext(context).let {
         referenceExpression.getReference(it).multiResolve(false)
     }
 }
