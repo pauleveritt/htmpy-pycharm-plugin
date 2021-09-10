@@ -49,15 +49,15 @@ class HtmpyInjector : PyInjectorBase() {
             } catch (e: Exception) {
                 return PyInjectionUtil.InjectionResult.EMPTY
             }
-            Regex("\\{([^}]*)\\}").findAll(text).drop(0).forEach {
-                registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
-                registrar.addPlace("", "", host,  TextRange(it.range.first + 1, it.range.last))
-                try {
-                    registrar.doneInjecting()
-                } catch (e: Exception) {
-                    return PyInjectionUtil.InjectionResult.EMPTY
-                }
-            }
+//            Regex("\\{([^}]*)\\}").findAll(text).drop(0).forEach {
+//                registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
+//                registrar.addPlace("", "", host,  TextRange(it.range.first + 1, it.range.last))
+//                try {
+//                    registrar.doneInjecting()
+//                } catch (e: Exception) {
+//                    return PyInjectionUtil.InjectionResult.EMPTY
+//                }
+//            }
             return PyInjectionUtil.InjectionResult(true, true)
         }
     }

@@ -39,6 +39,8 @@
         <multiHostInjector implementation="com.koxudaxi.htmpy.HtmpyInjector"/>
         <localInspection implementationClass="com.koxudaxi.htmpy.HtmpyInspection" displayName="HtmpyInspection" shortName="HtmpyInspection" enabledByDefault="true"/>
         <completion.contributor implementationClass="com.koxudaxi.htmpy.completion.HtmpyKeywordCompletionContributor" language="HTML"/>
+        <psi.referenceContributor implementation="com.koxudaxi.htmpy.psi.HtmpyReferenceContributor"
+                                  language="XML"/>
     </extensions>
     <extensions defaultExtensionNs="Pythonid">
         <pyReferenceResolveProvider implementation="com.koxudaxi.htmpy.psi.resolve.HtmpyReferenceResolveProvider"/>
