@@ -1,7 +1,7 @@
 <idea-plugin url="https://https://github.com/pauleveritt/htmpy-pycharm-plugin">
     <id>com.koxudaxi.htmpy</id>
     <name>Htmpy</name>
-    <version>0.0.3-2021091201</version>
+    <version>0.0.3-2021091202</version>
     <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
     <change-notes><![CDATA[
         <h2>version 0.0.2</h2>
