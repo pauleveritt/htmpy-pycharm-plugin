@@ -11,9 +11,11 @@ import com.jetbrains.python.psi.types.PyType
 import com.jetbrains.python.psi.types.TypeEvalContext
 
 const val HTM_HTM_Q_NAME = "htm.htm"
-
+const val VIEWDOM_H_HTML_Q_NAME = "viewdom.h.html"
 const val DATA_CLASS_Q_NAME = "dataclasses.dataclass"
 
+val HTM_HTM_QUALIFIED_NAME = QualifiedName.fromDottedString(HTM_HTM_Q_NAME)
+val VIEWDOM_H_HTML_QUALIFIED_NAME = QualifiedName.fromDottedString(VIEWDOM_H_HTML_Q_NAME)
 val DATA_CLASS_QUALIFIED_NAME = QualifiedName.fromDottedString(DATA_CLASS_Q_NAME)
 
 val DATA_CLASS_QUALIFIED_NAMES = listOf(
@@ -108,10 +110,10 @@ fun isHtm(context: PsiElement): Boolean {
 }
 
 fun isViewDomHtm(context: PsiElement): Boolean {
-    val functionQualifiedName = "viewdom.h.html"
-    val functionName = functionQualifiedName.split(".").last()
-    return multiResolveCalledPyTargetExpression(context, functionName, 0)
-        .filter { it.qualifiedName == functionQualifiedName }.any()
+    val functionName = VIEWDOM_H_HTML_Q_NAME.split(".").last()
+    return multiResolveCalledPyTargetExpression(context,
+        functionName,
+        0).any { it.qualifiedName == VIEWDOM_H_HTML_Q_NAME }
 }
 
 fun isHtmpy(psiElement: PsiElement): Boolean = isViewDomHtm(psiElement) || isHtm(psiElement)
@@ -130,7 +132,7 @@ fun collectComponents(
             val owner = ScopeUtil.getScopeOwner(psiElement)
             if (tag.value.length > 2 && owner != null) {
                 val component =
-                    PyResolveUtil.resolveLocally(owner, tag.destructured.component1()).firstOrNull()
+                    PyResolveUtil.resolveLocally(owner, tag.destructured.component1().trim()).firstOrNull()
                         .let {
                             when (it) {
                                 is PyImportElement -> {

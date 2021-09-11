@@ -55,17 +55,23 @@ class HtmpyInspection : PyInspection() {
                             }} }
                     }
                     else -> {
-                        registerProblem(
-                            node,
-                            "Component should be a callable",
-                            ProblemHighlightType.GENERIC_ERROR,
-                            null,
-                            TextRange(
-                                tag.range.first + component.range.first + 1,
-                                component.value.length + tag.range.first
-                            )
-                        )
-                    }
+                        val componentStart = tag.range.first + component.range.first
+                        val actualComponent =
+                            PyUtil.createExpressionFromFragment(component.value.substring(IntRange(1, component.value.length - 2)),
+                                node)
+                            if (actualComponent != null) {
+                                registerProblem(
+                                    node,
+                                    "Component should be a callable",
+                                    ProblemHighlightType.GENERIC_ERROR,
+                                    null,
+                                    TextRange(
+                                        componentStart + 1,
+                                        componentStart + actualComponent.textLength + 1
+                                    )
+                                )
+                            }
+                        }
                 }
                 keys.forEach { (name, key) ->
                     val argument = resolvedComponent?.let { getArgumentByName(it, name) }
