@@ -119,13 +119,13 @@ fun isHtmpy(psiElement: PsiElement): Boolean = isViewDomHtm(psiElement) || isHtm
 
 fun collectComponents(
     psiElement: PsiElement,
-    actionForComponent: (resolvedComponent: PyTypedElement, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit,
+    actionForComponent: (resolvedComponent: PyTypedElement?, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit,
     actionForEmptyComponent: (resolvedComponent: PyTypedElement, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit,
     actionForTag: ((resolvedComponent: PyTypedElement?, tag: MatchResult, fisrt: Int, last: Int) -> Unit)? = null
 ) {
     val text = psiElement.text
-    Regex("<[^>]*\\{([^}]*)\\}[^/>]*(/\\s*>|.*$)").findAll(text).forEach { element ->
-        val tag = Regex("\\{([^}]*)\\}").findAll(element.value).firstOrNull()
+    Regex("<[^>]*\\{([^}]*)}[^/>]*(/\\s*>|.*$)").findAll(text).forEach { element ->
+        val tag = Regex("\\{([^}]*)}").findAll(element.value).firstOrNull()
         if (tag != null) {
             val owner = ScopeUtil.getScopeOwner(psiElement)
             if (tag.value.length > 2 && owner != null) {
@@ -150,9 +150,9 @@ fun collectComponents(
 
                 if (component is PyTypedElement) {
                     val keys =
-                        (Regex("([^=}\\s]+)=([^\\s/]*)").findAll(element.value)
+                        (Regex("([^=}\\s]+)=(\\{[^\"]*})").findAll(element.value) + Regex("([^=}\\s]+)=([^\\s/]*)").findAll(element.value)
                                 + Regex("([^=}\\s]+)=\"([^\"]*)").findAll(element.value)
-                                + Regex("([^=}\\s]+)=(\\{[^\"]*\\})").findAll(element.value))
+                               )
                             .map { key ->
                                 Pair(key.destructured.component1(), key)
                             }.toMap()
@@ -162,6 +162,8 @@ fun collectComponents(
                         Pair(key.destructured.component1(), key)
                     }.toMap()
                     actionForEmptyComponent(component, element, tag,  emptyKeys)
+                } else {
+                    actionForComponent(null, element, tag, emptyMap())
                 }
                 if (actionForTag != null) {
                     actionForTag(component as? PyTypedElement, tag, element.range.first + tag.range.first + 1, element.range.first + tag.range.last)

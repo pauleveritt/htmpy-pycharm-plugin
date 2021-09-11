@@ -96,9 +96,9 @@ class HtmpyReferenceProvider : PsiReferenceProvider() {
                                     val valueExpression =
                                         PyUtil.createExpressionFromFragment(actualValue, hostElement)
                                     if (valueExpression is PyReferenceExpression) {
-                                        val valueStart = key.groups[2]!!.range.first - key.groups[0]!!.range.first
+                                        val valueStart = key.groups[2]!!.range.first - key.groups[0]!!.range.first + 1
                                         results.add(HtmpyElementPsiReference(element,
-                                            TextRange(valueStart, valueStart + valueExpression.text.length + 1),
+                                            TextRange(valueStart, valueStart + valueExpression.text.length),
                                             valueExpression))
                                     }
                                 }

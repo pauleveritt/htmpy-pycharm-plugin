@@ -45,7 +45,7 @@ class HtmpyInspection : PyInspection() {
                             }
                         }
                     }
-                    is PyFunction -> {
+                    is PyCallable -> {
                             resolvedComponent.parameterList.parameters.filterIsInstance<PyNamedParameter>().forEach { parameter ->
                                 val name = parameter.name
                                 if (!parameter.hasDefaultValue() && !keys.contains(name) && name is String) {
@@ -54,9 +54,21 @@ class HtmpyInspection : PyInspection() {
                                     warnMissingRequiredArgument(node, name, tag, component)
                             }} }
                     }
+                    else -> {
+                        registerProblem(
+                            node,
+                            "Component should be a callable",
+                            ProblemHighlightType.GENERIC_ERROR,
+                            null,
+                            TextRange(
+                                tag.range.first + component.range.first + 1,
+                                component.value.length + tag.range.first
+                            )
+                        )
+                    }
                 }
                 keys.forEach { (name, key) ->
-                    val argument = getArgumentByName(resolvedComponent, name)
+                    val argument = resolvedComponent?.let { getArgumentByName(it, name) }
                     if (argument is PyTypedElement) {
                         val value = key.destructured.component2()
                         if (value.isEmpty()) {
