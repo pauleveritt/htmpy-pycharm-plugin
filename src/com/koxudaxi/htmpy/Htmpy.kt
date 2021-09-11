@@ -121,7 +121,7 @@ fun collectComponents(
     psiElement: PsiElement,
     actionForComponent: (resolvedComponent: PyTypedElement, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit,
     actionForEmptyComponent: (resolvedComponent: PyTypedElement, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit,
-    actionForTag: ((tag: MatchResult, fisrt: Int, last: Int) -> Unit)? = null
+    actionForTag: ((resolvedComponent: PyTypedElement?, tag: MatchResult, fisrt: Int, last: Int) -> Unit)? = null
 ) {
     val text = psiElement.text
     Regex("<[^>]*\\{([^}]*)\\}[^/>]*(/\\s*>|.*$)").findAll(text).forEach { element ->
@@ -163,9 +163,14 @@ fun collectComponents(
                     }.toMap()
                     actionForEmptyComponent(component, element, tag,  emptyKeys)
                 }
+                if (actionForTag != null) {
+                    actionForTag(component as? PyTypedElement, tag, element.range.first + tag.range.first + 1, element.range.first + tag.range.last)
+                }
             }
-            if (actionForTag != null && tag.value.length > 2) {
-                actionForTag(tag, element.range.first + tag.range.first + 1, element.range.first + tag.range.last)
+            else {
+                if (actionForTag != null) {
+                    actionForTag(null, tag, element.range.first + tag.range.first + 1, element.range.first + tag.range.last)
+                }
             }
         }
     }
@@ -194,5 +199,20 @@ fun getPyTypeFromPyExpression(pyExpression: PyExpression, context: TypeEvalConte
                 ?.let { (it as? PyTypedElement)?.let { typedElement-> context.getType(typedElement)} }
         }
         else -> context.getType(pyExpression)
+    }
+}
+
+fun getTaggedActualValue(value: String): String {
+    return when {
+        value.startsWith("\"{") && value.endsWith("}\"") -> value.substring(
+            2,
+            value.length - 2
+        )
+        value.startsWith('"') && value.endsWith('"') -> value
+        value.startsWith('{') && value.endsWith('}') -> value.substring(
+            1,
+            value.length - 1
+        )
+        else -> "\"$value\""
     }
 }

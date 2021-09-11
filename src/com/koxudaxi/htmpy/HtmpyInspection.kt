@@ -5,9 +5,6 @@ import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElementVisitor
-import com.jetbrains.python.codeInsight.functionTypeComments.PyFunctionTypeAnnotationParser
-import com.jetbrains.python.codeInsight.intentions.PyTypeHintGenerationUtil
-import com.jetbrains.python.codeInsight.typing.PyTypingTypeProvider
 import com.jetbrains.python.documentation.PythonDocumentationProvider
 import com.jetbrains.python.inspections.PyInspection
 import com.jetbrains.python.inspections.PyInspectionVisitor
@@ -63,28 +60,17 @@ class HtmpyInspection : PyInspection() {
                     if (argument is PyTypedElement) {
                         val value = key.destructured.component2()
                         if (value.isEmpty()) {
-//                            val startPoint = tag.range.first + component.range.first + key.range.first
-//                            registerProblem(
-//                                node,
-//                                "Expression expected",
-//                                ProblemHighlightType.GENERIC_ERROR,
-//                                null,
-//                                TextRange(startPoint + name.length, startPoint + name.length + 1)
-//                            )
+                            val startPoint = tag.range.first + component.range.first + key.range.first
+                            registerProblem(
+                                node,
+                                "Expression expected",
+                                ProblemHighlightType.GENERIC_ERROR,
+                                null,
+                                TextRange(startPoint + name.length, startPoint + name.length + 1)
+                            )
                         } else {
                             val expectedType = myTypeEvalContext.getType(argument)
-                            val actualValue = when {
-                                value.startsWith("\"{") && value.endsWith("}\"") -> value.substring(
-                                    2,
-                                    value.length - 2
-                                )
-                                value.startsWith('"') && value.endsWith('"') -> value
-                                value.startsWith('{') && value.endsWith('}') -> value.substring(
-                                    1,
-                                    value.length - 1
-                                )
-                                else -> "\"$value\""
-                            }
+                            val actualValue = getTaggedActualValue(value)
                             val actualType = PyUtil.createExpressionFromFragment(actualValue, node)
                                 ?.let { getPyTypeFromPyExpression(it, myTypeEvalContext) }
 
@@ -111,7 +97,7 @@ class HtmpyInspection : PyInspection() {
                         registerProblem(
                             node,
                             "invalid a argument: '${name}'",
-                            ProblemHighlightType.WARNING,
+                            ProblemHighlightType.GENERIC_ERROR,
                             null,
                             TextRange(startPoint, startPoint + name.length)
                         )

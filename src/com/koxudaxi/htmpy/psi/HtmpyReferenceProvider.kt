@@ -1,8 +1,5 @@
 package com.koxudaxi.htmpy.psi
 
-import com.intellij.codeInsight.completion.PrioritizedLookupElement
-import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiElement
@@ -10,13 +7,26 @@ import com.intellij.util.ProcessingContext
 import com.intellij.psi.PsiReference
 import com.intellij.psi.impl.source.resolve.FileContextUtil
 import com.jetbrains.python.psi.*
+import com.jetbrains.python.psi.resolve.PyResolveUtil
 import com.koxudaxi.htmpy.collectComponents
 import com.koxudaxi.htmpy.getContextForCodeCompletion
+import com.koxudaxi.htmpy.getTaggedActualValue
 import com.koxudaxi.htmpy.isHtmpy
 
 class HtmpyReferenceProvider : PsiReferenceProvider() {
-    class HtmpyElementPsiReference(val htmpyElement: PsiElement, val range: TextRange, val target: PyElement?) :
+    class HtmpyElementPsiReference(
+        val htmpyElement: PsiElement,
+        val range: TextRange,
+        var target: PsiElement?,
+        val reference: PyReferenceExpression? = null,
+    ) :
         PsiReference {
+
+        constructor(htmpyElement: PsiElement, range: TextRange, reference: PyReferenceExpression) : this(htmpyElement,
+            range,
+            null,
+            reference)
+
         override fun getElement(): PsiElement {
             return htmpyElement
         }
@@ -26,6 +36,9 @@ class HtmpyReferenceProvider : PsiReferenceProvider() {
         }
 
         override fun resolve(): PsiElement? {
+            if (reference is PyReferenceExpression) {
+                return reference.reference.resolve() ?: PyResolveUtil.resolveLocally(reference).firstOrNull()
+            }
             return target
         }
 
@@ -40,11 +53,12 @@ class HtmpyReferenceProvider : PsiReferenceProvider() {
         }
 
         override fun bindToElement(element: PsiElement): PsiElement {
-            TODO("Not yet implemented")
+            target = element
+            return element
         }
 
         override fun isReferenceTo(element: PsiElement): Boolean {
-            TODO("Not yet implemented")
+            return this.resolve() == element
         }
 
         override fun isSoft(): Boolean {
@@ -60,56 +74,51 @@ class HtmpyReferenceProvider : PsiReferenceProvider() {
         if (!isHtmpy(hostElement)) return listOf<PsiReference>().toTypedArray()
         val typeContext = getContextForCodeCompletion(hostElement)
         val results = mutableListOf<PsiReference>()
-        collectComponents(hostElement, { resolvedComponent, tag, _, keys ->
+        collectComponents(hostElement, { resolvedComponent, tag, components, keys ->
             if (tag.range.contains(element.textOffset)) {
-                when (resolvedComponent) {
-                    is PyClass -> {
-                        keys.forEach { (key, result) ->
-                            val valueResult = result.groups.first()
+                if (resolvedComponent is PyClass || resolvedComponent is PyFunction) {
+                    keys.forEach { (name, key) ->
+                        if (tag.range.first + key.range.first == (element.textRange.startOffset + 1)) {
+                            val valueResult = key.groups.first()
                             if (valueResult != null) {
-                                results.add(HtmpyElementPsiReference(element, TextRange(0, key.length), resolvedComponent.findClassAttribute(key, true, typeContext)))
-                            }
-
-                        }
-//                        resolvedComponent.classAttributes.filter { instanceAttribute ->
-//                            !instanceAttribute.hasAssignedValue() && !keys.contains(instanceAttribute.name)
-//                        }
-//                            .mapNotNull { validKey -> validKey.name }
-//                            .forEach { name ->
-//                                val attribute = resolvedComponent.findClassAttribute(name, true, null)
-//                                if (attribute != null) {
-//
-//                                    val element = PrioritizedLookupElement.withGrouping(
-//                                        LookupElementBuilder
-//                                            .createWithSmartPointer("$name=", attribute)
-//                                            .withTypeText(typeContext.getType(attribute)?.name)
-//                                            .withIcon(AllIcons.Nodes.Field), 1
-//                                    )
-////                                    result.addElement(PrioritizedLookupElement.withPriority(element, 100.0))
-//                                }
-//                            }
-                    }
-                    is PyFunction -> {
-                        resolvedComponent.parameterList.parameters.filter { parameter ->
-                            !parameter.hasDefaultValue() && !keys.contains(parameter.name)
-                        }
-                            .mapNotNull { validKey -> validKey.name }
-                            .forEach { name ->
-                                val parameter = resolvedComponent.parameterList.findParameterByName(name)
-                                if (parameter != null) {
-                                    val element = PrioritizedLookupElement.withGrouping(
-                                        LookupElementBuilder
-                                            .createWithSmartPointer("$name=", parameter)
-                                            .withTypeText(typeContext.getType(parameter)?.name)
-                                            .withIcon(AllIcons.Nodes.Field), 1
-                                    )
-//                                    result.addElement(PrioritizedLookupElement.withPriority(element, 100.0))
+                                val parameter = when (resolvedComponent) {
+                                    is PyClass -> resolvedComponent.findClassAttribute(name, true, typeContext)
+                                    else -> (resolvedComponent as PyFunction).parameterList.findParameterByName(name)
+                                }
+                                results.add(HtmpyElementPsiReference(
+                                    element,
+                                    TextRange(0, name.length),
+                                    parameter,
+                                ))
+                                val value = key.destructured.component2()
+                                if (value.isNotEmpty()) {
+                                    val actualValue = getTaggedActualValue(value)
+                                    val valueExpression =
+                                        PyUtil.createExpressionFromFragment(actualValue, hostElement)
+                                    if (valueExpression is PyReferenceExpression) {
+                                        val valueStart = key.groups[2]!!.range.first - key.groups[0]!!.range.first
+                                        results.add(HtmpyElementPsiReference(element,
+                                            TextRange(valueStart, valueStart + valueExpression.text.length + 1),
+                                            valueExpression))
+                                    }
                                 }
                             }
+                        }
+
                     }
                 }
             }
-        }, { _, _, _, _ -> {} })
+        }, { _, _, _, _ -> },
+            { resolvedComponent, tag, _, _ ->
+                if (tag.range.contains(element.textOffset)) {
+                    val tagGroup = tag.groups[0]!!
+                    results.add(HtmpyElementPsiReference(
+                        element,
+                        TextRange(tag.range.first + tagGroup.range.first, tagGroup.value.length),
+                        resolvedComponent,
+                    ))
+                }
+            })
         return results.toTypedArray()
     }
 }
