@@ -8,9 +8,7 @@ import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.util.ProcessingContext
 import com.jetbrains.python.psi.*
-import com.jetbrains.python.psi.impl.ResolveResultList
 import com.jetbrains.python.psi.resolve.PyResolveUtil
-import com.jetbrains.python.psi.resolve.RatedResolveResult
 import com.jetbrains.python.psi.types.TypeEvalContext
 import com.koxudaxi.htmpy.collectComponents
 import com.koxudaxi.htmpy.getContextForCodeCompletion
@@ -70,7 +68,7 @@ class HtmpyReferenceProvider : PsiReferenceProvider() {
                             ))
                             val value = key.destructured.component2()
                             if (value.isNotEmpty()) {
-                                val actualValue = getTaggedActualValue(value)
+                                val actualValue = getTaggedActualValue(value).let { if (it.endsWith(".")) { it.substring(0, it.length - 1)} else {it} }
                                 val valueExpression =
                                     PyUtil.createExpressionFromFragment(actualValue, element)
                                 if (valueExpression is PyReferenceExpression) {
@@ -86,15 +84,14 @@ class HtmpyReferenceProvider : PsiReferenceProvider() {
                 }
             }
         }, { _, _, _, _ -> },
-            { resolvedComponent, tag, _, _ ->
-                val tagStart = tag.range.first + 1
+            { resolvedComponent, tag, first, _ ->
                 val actualComponent =
                     PyUtil.createExpressionFromFragment(tag.value.substring(IntRange(1, tag.value.length - 2)),
                         element)
                 if (actualComponent != null) {
                     results.add(HtmpyElementPsiReference(
                         element,
-                        TextRange(tagStart, tagStart + actualComponent.text.length + 1),
+                        TextRange(first, first + actualComponent.text.length),
                         resolvedComponent,
                     ))
                 }
