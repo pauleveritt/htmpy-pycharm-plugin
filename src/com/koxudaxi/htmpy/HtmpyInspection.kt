@@ -32,27 +32,27 @@ class HtmpyInspection : PyInspection() {
             collectComponents(node, { resolvedComponent, tag, component, keys ->
                 when (resolvedComponent) {
                     is PyClass -> {
-                        resolvedComponent.classAttributes.forEach { classAttribute ->
-                            val name = classAttribute.name
-                            if (!classAttribute.hasAssignedValue() && !keys.contains(name) && name is String) {
-                                val field = PyDataclassFieldStubImpl.create(classAttribute)
-                                if (!(field is PyDataclassFieldStub && !field.initValue()) && (myTypeEvalContext.getType(
-                                        classAttribute
-                                    ) as? PyUnionType)?.members?.any { it is PyNoneType } != true
-                                ) {
-                                    warnMissingRequiredArgument(node, name, tag, component)
-                                }
-                            }
-                        }
+//                        resolvedComponent.classAttributes.forEach { classAttribute ->
+//                            val name = classAttribute.name
+//                            if (!classAttribute.hasAssignedValue() && !keys.contains(name) && name is String) {
+//                                val field = PyDataclassFieldStubImpl.create(classAttribute)
+//                                if (!(field is PyDataclassFieldStub && !field.initValue()) && (myTypeEvalContext.getType(
+//                                        classAttribute
+//                                    ) as? PyUnionType)?.members?.any { it is PyNoneType } != true
+//                                ) {
+//                                    warnMissingRequiredArgument(node, name, tag, component)
+//                                }
+//                            }
+//                        }
                     }
                     is PyCallable -> {
-                            resolvedComponent.parameterList.parameters.filterIsInstance<PyNamedParameter>().forEach { parameter ->
-                                val name = parameter.name
-                                if (!parameter.hasDefaultValue() && !keys.contains(name) && name is String) {
-                                if ((myTypeEvalContext.getType(parameter) as? PyUnionType)?.members?.any { it is PyNoneType } != true
-                                ) {
-                                    warnMissingRequiredArgument(node, name, tag, component)
-                            }} }
+//                            resolvedComponent.parameterList.parameters.filterIsInstance<PyNamedParameter>().forEach { parameter ->
+//                                val name = parameter.name
+//                                if (!parameter.hasDefaultValue() && !keys.contains(name) && name is String) {
+//                                if ((myTypeEvalContext.getType(parameter) as? PyUnionType)?.members?.any { it is PyNoneType } != true
+//                                ) {
+//                                    warnMissingRequiredArgument(node, name, tag, component)
+//                            }} }
                     }
                     else -> {
                         val componentStart = tag.range.first + component.range.first
