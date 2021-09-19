@@ -12,10 +12,13 @@ import com.jetbrains.python.psi.types.TypeEvalContext
 
 const val HTM_HTM_Q_NAME = "htm.htm"
 const val VIEWDOM_H_HTML_Q_NAME = "viewdom.h.html"
+const val VIEWDOM_HTML_Q_NAME = "viewdom.html"
+const val VIEWDOM_HTML_Q_LAST = "html"
 const val DATA_CLASS_Q_NAME = "dataclasses.dataclass"
 
 val HTM_HTM_QUALIFIED_NAME = QualifiedName.fromDottedString(HTM_HTM_Q_NAME)
 val VIEWDOM_H_HTML_QUALIFIED_NAME = QualifiedName.fromDottedString(VIEWDOM_H_HTML_Q_NAME)
+val VIEWDOM_HTML_QUALIFIED_NAME = QualifiedName.fromDottedString(VIEWDOM_HTML_Q_NAME)
 val DATA_CLASS_QUALIFIED_NAME = QualifiedName.fromDottedString(DATA_CLASS_Q_NAME)
 
 val DATA_CLASS_QUALIFIED_NAMES = listOf(
@@ -110,10 +113,9 @@ fun isHtm(context: PsiElement): Boolean {
 }
 
 fun isViewDomHtm(context: PsiElement): Boolean {
-    val functionName = VIEWDOM_H_HTML_Q_NAME.split(".").last()
     return multiResolveCalledPyTargetExpression(context,
-        functionName,
-        0).any { it.qualifiedName == VIEWDOM_H_HTML_Q_NAME }
+        VIEWDOM_HTML_Q_LAST,
+        0).any { it.qualifiedName == VIEWDOM_H_HTML_Q_NAME || it.qualifiedName == VIEWDOM_HTML_Q_NAME}
 }
 
 fun isHtmpy(psiElement: PsiElement): Boolean = isViewDomHtm(psiElement) || isHtm(psiElement)
@@ -124,6 +126,7 @@ fun collectComponents(
     actionForComponent: (resolvedComponent: PyTypedElement?, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit,
     actionForEmptyComponent: (resolvedComponent: PyTypedElement, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit,
     actionForTag: ((resolvedComponent: PyTypedElement?, tag: MatchResult, fisrt: Int, last: Int) -> Unit)? = null
+
 ) {
     val text = psiElement.text
     Regex("<[^>]*\\{([^}]*)}[^/>]*(/\\s*>|.*$)").findAll(text).forEach { element ->
