@@ -124,12 +124,20 @@ fun isHtmpy(psiElement: PsiElement): Boolean = isViewDomHtm(psiElement) || isHtm
 fun collectComponents(
     psiElement: PsiElement,
     actionForComponent: (resolvedComponent: PyTypedElement?, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit,
-    actionForEmptyComponent: (resolvedComponent: PyTypedElement, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit,
-    actionForTag: ((resolvedComponent: PyTypedElement?, tag: MatchResult, fisrt: Int, last: Int) -> Unit)? = null
+    actionForEmptyComponent: ((resolvedComponent: PyTypedElement, tag: MatchResult, component: MatchResult, keys: Map<String, MatchResult>) -> Unit)? = null,
+    actionForTag: ((resolvedComponent: PyTypedElement?, tag: MatchResult, first: Int, last: Int) -> Unit)? = null,
+    actionForUnTag: ((tag: MatchResult) -> Unit)? = null
 
 ) {
     val text = psiElement.text
-    Regex("<[^>]*\\{([^}]*)}[^/>]*(/\\s*>|.*$)").findAll(text).forEach { element ->
+    val results = Regex("<[^>]*\\{([^}]*)}[^/>]*(/\\s*>|.*$)").findAll(text).toList()
+    if (results.isEmpty() && actionForUnTag != null) {
+         Regex("<*\\{([^}]*)}(/\\s*>|.*$)").findAll(text).forEach { match ->
+             actionForUnTag(match)
+        }
+        return
+    }
+    results.forEach { element ->
         val tag = Regex("\\{([^}]*)}").findAll(element.value).firstOrNull()
         if (tag != null) {
             val owner = ScopeUtil.getScopeOwner(psiElement)
@@ -166,7 +174,7 @@ fun collectComponents(
                     val emptyKeys = Regex("([^=}\\s]+)=(\\s+)").findAll(element.value).map { key ->
                         Pair(key.destructured.component1(), key)
                     }.toMap()
-                    actionForEmptyComponent(component, element, tag,  emptyKeys)
+                    actionForEmptyComponent?.let { it(component, element, tag,  emptyKeys) }
                 } else {
                     actionForComponent(null, element, tag, emptyMap())
                 }

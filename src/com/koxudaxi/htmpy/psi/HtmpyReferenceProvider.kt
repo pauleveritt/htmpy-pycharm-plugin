@@ -95,6 +95,19 @@ class HtmpyReferenceProvider : PsiReferenceProvider() {
                         resolvedComponent,
                     ))
                 }
+            }, {key ->
+                val value = key.destructured.component1()
+                if (value.isNotEmpty()) {
+                    val actualValue = value.let { if (it.endsWith(".")) { it.substring(0, it.length - 1)} else {it} }
+                    val valueExpression =
+                        PyUtil.createExpressionFromFragment(actualValue, element)
+                    if (valueExpression is PyReferenceExpression) {
+                        results.add(HtmpyElementPsiReference(
+                            element,
+                            TextRange(key.range.first, key.range.first + valueExpression.text.length + 1),
+                            valueExpression))
+                    }
+                }
             })
         return results.toTypedArray()
     }

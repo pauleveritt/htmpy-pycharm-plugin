@@ -13,13 +13,13 @@ class HtmpyIgnoreUnusedInspection : PyInspectionExtension() {
         if (element.containingFile !is PyFile) {
             return false
         }
-        if (element !is PyTargetExpression) {
+        if (element !is PyTargetExpression && element !is PyNamedParameter) {
             return false
         }
         var result = false
-        PsiTreeUtil.findChildrenOfType(element.parent.parent, PyStringLiteralExpression::class.java)?.forEach {
+        PsiTreeUtil.findChildrenOfType(element.parent.parent, PyStringLiteralExpression::class.java).forEach {
             if (isHtmpy(it)) {
-                collectComponents(it, { _, tag, component, keys ->
+                collectComponents(it, { _, _, component, keys ->
                     val actualComponent =
                         PyUtil.createExpressionFromFragment(component.value.substring(IntRange(1,
                             component.value.length - 2)),
@@ -50,7 +50,20 @@ class HtmpyIgnoreUnusedInspection : PyInspectionExtension() {
                         }
                     }
                 },
-                    { _, _, _, _ -> })
+                    null, null, { key ->
+                        val value = key.destructured.component1()
+                        if (value.isNotEmpty()) {
+                            val valueExpression =
+                                PyUtil.createExpressionFromFragment(value, element)
+                            if (valueExpression is PyReferenceExpression) {
+                                val resolvedValue = PyResolveUtil.resolveLocally(valueExpression).firstOrNull()
+                                if (resolvedValue == element) {
+                                    result = true
+                                    return@collectComponents
+                                }
+                            }
+                        }
+                    })
             }
         }
         return result
