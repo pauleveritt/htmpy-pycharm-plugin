@@ -37,8 +37,11 @@
         <lang.ast.factory language="Htmpy" implementationClass="com.koxudaxi.htmpy.psi.HtmpyASTFactory"/>
 <!--        <multiHostInjector implementation="com.koxudaxi.htmpy.HtmpyConfigurationInjector"/>-->
         <multiHostInjector implementation="com.koxudaxi.htmpy.HtmpyInjector"/>
-        <localInspection implementationClass="com.koxudaxi.htmpy.HtmpyInspection" displayName="HtmpyInspection" shortName="HtmpyInspection" enabledByDefault="true"/>
+        <localInspection implementationClass="com.koxudaxi.htmpy.HtmpyInspection" displayName="HtmpyInspection" shortName="HtmpyInspection" enabledByDefault="true"
+                         language="Python"/>
+
         <completion.contributor implementationClass="com.koxudaxi.htmpy.completion.HtmpyKeywordCompletionContributor" language="HTML"/>
+        <completion.contributor implementationClass="com.koxudaxi.htmpy.completion.HtmpyTagCompletionContributor" language="Python"/>
         <psi.referenceContributor implementation="com.koxudaxi.htmpy.psi.HtmpyReferenceContributor"
                                   language="Python"/>
 
