@@ -38,26 +38,32 @@ class HtmpyInjector : PyInjectorBase() {
             host: PsiLanguageInjectionHost
         ): PyInjectionUtil.InjectionResult {
             val text = host.text
-            val stringValue = (host as? PyStringLiteralExpression)?.stringValue ?: return PyInjectionUtil.InjectionResult.EMPTY
-            if (text.length <= 2 || stringValue != text.substring(1, text.lastIndex)) {
+            val stringValue =  (host as? PyStringLiteralExpression)?.stringValue ?: return PyInjectionUtil.InjectionResult.EMPTY
+            if (text.length <= 2 ) {
                     return PyInjectionUtil.InjectionResult.EMPTY
             }
+            val offset = when (stringValue) {
+                text.substring(1, text.lastIndex) -> 0
+                text.substring(3, text.lastIndex - 2) -> 2
+                else -> return PyInjectionUtil.InjectionResult.EMPTY
+            }
             registrar.startInjecting(HtmpyLanguage.INSTANCE)
-            registrar.addPlace("", "", host, TextRange(0,  text.length))
+            registrar.addPlace("", "", host, TextRange(offset,  text.length- offset))
             try {
                 registrar.doneInjecting()
             } catch (e: Exception) {
                 return PyInjectionUtil.InjectionResult.EMPTY
             }
-//            Regex("\\{([^}]*)\\}").findAll(text).drop(0).forEach {
-//                registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
-//                registrar.addPlace("", "", host,  TextRange(it.range.first + 1, it.range.last))
-//                try {
-//                    registrar.doneInjecting()
-//                } catch (e: Exception) {
-//                    return PyInjectionUtil.InjectionResult.EMPTY
-//                }
-//            }
+
+            Regex("\\{([^}]*)\\}").findAll(text).drop(0).forEach {
+                registrar.startInjecting(PyDocstringLanguageDialect.getInstance())
+                registrar.addPlace("", "", host,  TextRange(it.range.first + 1, it.range.last))
+                try {
+                    registrar.doneInjecting()
+                } catch (e: Exception) {
+                    return PyInjectionUtil.InjectionResult.EMPTY
+                }
+            }
             return PyInjectionUtil.InjectionResult(true, true)
         }
     }
