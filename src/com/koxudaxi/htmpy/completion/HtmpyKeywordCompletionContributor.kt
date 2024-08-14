@@ -15,6 +15,13 @@ import com.jetbrains.python.psi.*
 import com.koxudaxi.htmpy.*
 
 class HtmpyKeywordCompletionContributor : CompletionContributor() {
+    fun getName(name: String, parameters:  CompletionParameters): String {
+        return if (parameters.position.nextSibling.nextSibling.text.first() == '=') {
+            name
+        } else {
+            "$name="
+        }
+    }
     init {
         extend(CompletionType.BASIC,
             PlatformPatterns.psiElement(),
@@ -48,7 +55,7 @@ class HtmpyKeywordCompletionContributor : CompletionContributor() {
                                             if (attribute != null) {
                                                 val element = PrioritizedLookupElement.withGrouping(
                                                     LookupElementBuilder
-                                                        .createWithSmartPointer("$name=", attribute)
+                                                        .createWithSmartPointer(getName(name, parameters), attribute)
                                                         .withTypeText(typeContext.getType(attribute)?.name)
                                                         .withIcon(AllIcons.Nodes.Field), 1
                                                 )
@@ -66,7 +73,7 @@ class HtmpyKeywordCompletionContributor : CompletionContributor() {
                                             if (parameter != null) {
                                                 val element = PrioritizedLookupElement.withGrouping(
                                                     LookupElementBuilder
-                                                        .createWithSmartPointer("$name=", parameter)
+                                                        .createWithSmartPointer(getName(name, parameters), parameter)
                                                         .withTypeText(typeContext.getType(parameter)?.name)
                                                         .withIcon(AllIcons.Nodes.Field), 1
                                                 )
