@@ -1,0 +1,24 @@
+{
+  parserClass="com.koxudaxi.htmpy.parsing.HtmpyParser"
+  parserUtilClass="com.koxudaxi.htmpy.parsing.HtmpyParserUtil"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="Htmpy"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.koxudaxi.htmpy.psi"
+  psiImplPackage="com.koxudaxi.htmpy.psi.impl"
+
+  elementTypeHolderClass="com.koxudaxi.htmpy.psi.HtmpyTypes"
+  elementTypeClass="com.koxudaxi.htmpy.parsing.HtmpyElementType"
+  tokenTypeClass="com.koxudaxi.htmpy.psi.HtmpyTokenType"
+
+  psiImplUtilClass="com.koxudaxi.htmpy.psi.impl.HtmpyPsiImplUtil"
+}
+
+
+htmpyFile ::= item_*
+
+private item_ ::= (python_element|OPEN|CLOSE|INVALID|COMMENT|COMMENT_CONTENT|CONTENT|OUTER_ELEMENT_TYPE|ESCAPE_CHAR|CLOSE_UNESCAPED|COMMENT_OPEN|OPEN_INVERSE|ID|SEP|OPEN_UNESCAPED|UNCLOSED_COMMENT|COMMENT_CLOSE|OPEN_BLOCK|OPEN_ENDBLOCK|OPEN_PARTIAL|ELSE|BLOCK_WRAPPER|OPEN_RAW_BLOCK|CLOSE_RAW_BLOCK|OPEN_BLOCK_STACHE|OPEN_INVERSE_CHAIN|OPEN_INVERSE_BLOCK_STACHE|MUSTACHE|CLOSE_BLOCK_STACHE|SIMPLE_INVERSE|PARAM)
+
+python_element ::= PYTHON_CODE {methods=[getPyElement]}

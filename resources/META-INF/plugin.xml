@@ -1,0 +1,51 @@
+<idea-plugin url="https://https://github.com/pauleveritt/htmpy-pycharm-plugin">
+    <id>com.koxudaxi.htmpy</id>
+    <name>Htmpy</name>
+    <version>0.0.3-2021091901</version>
+    <vendor email="koaxudai@gmail.com">Koudai Aono @koxudaxi</vendor>
+    <change-notes><![CDATA[
+        <h2>version 0.0.2</h2>
+        <p>Features</p>
+        <ul>
+           <li>Support tagged htm parser [#3] </li>
+        </ul>
+        <h2>version 0.0.1</h2>
+        <p>Features</p>
+        <ul>
+           <li>Support injecting html inside html('') [#1] </li>
+        </ul>
+    ]]></change-notes>
+    <description><![CDATA[
+    <p>Syntax highlighting and code insight for strings used in htm.py</p>
+    ]]></description>
+
+    <idea-version since-build="202.0" until-build="202.*"/>
+
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.python</depends>
+    <depends>org.intellij.intelliLang</depends>
+    <extensions defaultExtensionNs="org.intellij.intelliLang">
+        <languageSupport implementation="com.koxudaxi.htmpy.HtmpyLanguageInjectionSupport"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="Htmpy" implementationClass="com.koxudaxi.htmpy.HtmpyFileType" fieldName="INSTANCE"
+                  language="Htmpy" extensions="htmpy"/>
+        <lang.parserDefinition language="Htmpy" implementationClass="com.koxudaxi.htmpy.parsing.HtmpyParseDefinition"/>
+        <lang.fileViewProviderFactory language="Htmpy"
+                                      implementationClass="com.koxudaxi.htmpy.HtmpyFielViewProviderFactory"/>
+        <lang.substitutor language="Htmpy" implementationClass="com.koxudaxi.htmpy.HtmpyLanguageSubstitutor"/>
+        <lang.ast.factory language="Htmpy" implementationClass="com.koxudaxi.htmpy.psi.HtmpyASTFactory"/>
+<!--        <multiHostInjector implementation="com.koxudaxi.htmpy.HtmpyConfigurationInjector"/>-->
+        <multiHostInjector implementation="com.koxudaxi.htmpy.HtmpyInjector"/>
+        <localInspection implementationClass="com.koxudaxi.htmpy.HtmpyInspection" displayName="HtmpyInspection" shortName="HtmpyInspection" enabledByDefault="true"/>
+        <completion.contributor implementationClass="com.koxudaxi.htmpy.completion.HtmpyKeywordCompletionContributor" language="HTML"/>
+        <psi.referenceContributor implementation="com.koxudaxi.htmpy.psi.HtmpyReferenceContributor"
+                                  language="Python"/>
+
+    </extensions>
+    <extensions defaultExtensionNs="Pythonid">
+        <inspectionExtension implementation="com.koxudaxi.htmpy.psi.HtmpyIgnoreUnusedInspection"/>
+        <pyReferenceResolveProvider implementation="com.koxudaxi.htmpy.psi.resolve.HtmpyReferenceResolveProvider"/>
+    </extensions>
+</idea-plugin>
+
